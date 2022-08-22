@@ -2,3 +2,14 @@ version: "3"
 networks:
   app-tier:
     driver: bridge
+
+services:
+  frontend-app:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - app-tier
