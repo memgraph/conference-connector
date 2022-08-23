@@ -2,3 +2,28 @@ version: "3"
 networks:
   app-tier:
     driver: bridge
+services:
+  memgraph-mage:
+    build: ./memgraph
+    entrypoint:
+      [
+        "/usr/lib/memgraph/memgraph",
+      ]
+    ports:
+      - "7687:7687"
+    networks:
+      - app-tier
+  backend:
+    build: ./backend
+    command: uvicorn main:app --host 0.0.0.0
+    ports:
+      - 8008:8000
+    depends_on:
+      - memgraph-mage
+    networks:
+      - app-tier
+    environment: 
+      - MG_HOST=memgraph-mage
+      - MG_PORT=7687
+      - BEARER_TOKEN=${BEARER_TOKEN}
+
