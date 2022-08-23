@@ -28,4 +28,12 @@ services:
       - MG_HOST=memgraph-mage
       - MG_PORT=7687
       - BEARER_TOKEN=${BEARER_TOKEN}
-
+  frontend-app:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - app-tier
