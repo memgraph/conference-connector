@@ -28,6 +28,8 @@
   flex-grow: 1;
 }
 
+/* Header Section */
+
 .title a {
   color: #0070f3;
   text-decoration: none;
@@ -41,8 +43,9 @@
 
 .title {
   margin: 0;
-  line-height: 1.15;
+  line-height: 4.5rem;
   font-size: 4rem;
+  color: #fb6d00;
 }
 
 .title,
@@ -50,11 +53,14 @@
   text-align: center;
 }
 
+/* Description Section */
+
 .description {
   margin: 4rem 0;
   line-height: 1.5;
   font-size: 1.5rem;
 }
+
 
 .code {
   background: #fafafa;
@@ -88,8 +94,8 @@
 .card:hover,
 .card:focus,
 .card:active {
-  color: #0070f3;
-  border-color: #0070f3;
+  color: #fb6d00;
+  border-color: #fb6d00;
 }
 
 .card h2 {
@@ -104,7 +110,6 @@
 }
 
 .logo {
-  height: 1em;
   margin-left: 0.5rem;
 }
 
@@ -116,14 +121,17 @@
 }
 
 @media (prefers-color-scheme: dark) {
+
   .card,
   .footer {
     border-color: #222;
   }
+
   .code {
     background: #111;
   }
-  .logo img {
+
+  /* .logo img {
     filter: invert(1);
-  }
+  } */
 }

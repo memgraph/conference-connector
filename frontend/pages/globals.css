@@ -24,24 +24,6 @@ body {
   font-family: var(--mg-font-family-alt);
 }
 
-h1 {
-  size: 4rem;
-  line-height: 4.5rem;
-  font-weight: 600;
-}
-
-h2 {
-  size: 2.625rem;
-  line-height: 3.5rem;
-  font-weight: 500;
-}
-
-h3 {
-  size: 2rem;
-  line-height: 2.5rem;
-  font-weight: 500;
-}
-
 h1,
 h2,
 h3,
@@ -60,13 +42,13 @@ a {
   box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
   html {
-    color-scheme: light;
+    color-scheme: dark;
   }
 
   body {
-    color: white;
-    background: black;
+    color: black;
+    background: white;
   }
 }
