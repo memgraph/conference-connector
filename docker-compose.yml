@@ -15,9 +15,11 @@ services:
       - app-tier
   backend:
     build: ./backend
-    command: uvicorn main:app --host 0.0.0.0
+    volumes:
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 
     ports:
-      - 8008:8000
+      - 8000:8000
     depends_on:
       - memgraph-mage
     networks:

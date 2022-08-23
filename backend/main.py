@@ -2,12 +2,13 @@ from typing import Union
 from fastapi import FastAPI
 from tweepy import Client
 from gqlalchemy import Memgraph, Match, Call
+from utils import env
 import logging
 import os 
 import time
-import utils
 
-client = Client(bearer_token=None)
+
+twitter_client = Client(bearer_token=None)
 memgraph = Memgraph()
 log = logging.getLogger(__name__)
 app = FastAPI()
@@ -19,8 +20,8 @@ def init_log():
 
 
 def init_twitter_access():
-    bearer_token = get_required_env('BEARER_TOKEN')
-    client.bearer_token = bearer_token
+    bearer_token = env.get_required_env('BEARER_TOKEN')
+    twitter_client.bearer_token = bearer_token
         
 
 def connect_to_memgraph():
@@ -35,19 +36,6 @@ def connect_to_memgraph():
 
 
 
-def twitter_api_helper():
-    user = client.get_user(username="supe_katarina")
-
-    id = user.data["id"]
-    tweets = client.get_users_tweets(id=id, tweet_fields=['context_annotations','created_at','geo'])
-
-    for tweet in tweets.data:
-        print(tweets.data)
-        print(tweet)
-
-
-
-
 @app.on_event("startup")
 def startup_event():
     init_log()
@@ -55,10 +43,6 @@ def startup_event():
     connect_to_memgraph()
     twitter_api_helper()
     
-
-
-
-
 @app.get("/")
 def read_root():
      return {"Hello": "World"}
