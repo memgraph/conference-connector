@@ -15,16 +15,18 @@ const buttonSx = {
 interface Props {
   children?: React.ReactNode;
   variant?: "text" | "outlined" | "contained" | undefined
-  onClick: () => void;
+  onClick?: () => void;
+  disabled?: true | false
 }
 
 const MyButton: React.FC<Props> = ({
   children,
   variant,
-  onClick
+  onClick,
+  disabled
 }) => {
   return (
-    <Button sx={buttonSx} variant={variant} size="large" onClick={onClick}>
+    <Button sx={buttonSx} variant={variant} size="large" onClick={onClick} disabled={disabled}>
       {children}
     </Button>
   )

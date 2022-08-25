@@ -5,10 +5,7 @@ import PopUp from '../components/popup'
 import Footer from '../components/footer'
 import AlignItemsList from '../components/alignItemsList'
 
-
-
 const Home: NextPage = () => {
-
   return (
     <div className={styles.page}>
       <div className={styles.container}>
