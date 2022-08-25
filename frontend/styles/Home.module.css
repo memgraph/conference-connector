@@ -2,34 +2,6 @@
   padding: 0 2rem;
 }
 
-.main {
-  min-height: 100vh;
-  padding: 4rem 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.footer {
-  display: flex;
-  flex: 1;
-  padding: 2rem 0;
-  border-top: 1px solid #eaeaea;
-  justify-content: center;
-  align-items: center;
-}
-
-.footer a {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-grow: 1;
-}
-
-/* Header Section */
-
 .title a {
   color: #0070f3;
   text-decoration: none;
@@ -42,10 +14,10 @@
 }
 
 .title {
-  margin: 0;
+  margin-top: 2rem;
   line-height: 4.5rem;
   font-size: 4rem;
-  color: #fb6d00;
+  color: #231F20;
 }
 
 .title,
@@ -53,14 +25,11 @@
   text-align: center;
 }
 
-/* Description Section */
-
 .description {
-  margin: 4rem 0;
+  margin: 2rem 0;
   line-height: 1.5;
   font-size: 1.5rem;
 }
-
 
 .code {
   background: #fafafa;
@@ -71,43 +40,6 @@
     Bitstream Vera Sans Mono, Courier New, monospace;
 }
 
-.grid {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  max-width: 800px;
-}
-
-.card {
-  margin: 1rem;
-  padding: 1.5rem;
-  text-align: left;
-  color: inherit;
-  text-decoration: none;
-  border: 1px solid #eaeaea;
-  border-radius: 10px;
-  transition: color 0.15s ease, border-color 0.15s ease;
-  max-width: 300px;
-}
-
-.card:hover,
-.card:focus,
-.card:active {
-  color: #fb6d00;
-  border-color: #fb6d00;
-}
-
-.card h2 {
-  margin: 0 0 1rem 0;
-  font-size: 1.5rem;
-}
-
-.card p {
-  margin: 0;
-  font-size: 1.25rem;
-  line-height: 1.5;
-}
 
 .logo {
   margin-left: 0.5rem;
@@ -130,8 +62,4 @@
   .code {
     background: #111;
   }
-
-  /* .logo img {
-    filter: invert(1);
-  } */
 }
