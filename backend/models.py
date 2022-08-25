@@ -1,14 +1,20 @@
+
 from typing import Optional
-from main import memgraph
-from gqlalchemy import Node, Field, Relationship
+from gqlalchemy import Node, Field, Relationship, Memgraph
+
+memgraph = Memgraph()
 
 class Participant(Node):
     id: int = Field(index = True, exists=True, unique=True, db=memgraph)
     username: str = Field(unique=True)
+    name: str = Field()
+    
 
 class Tweet(Node):
     id: int = Field(index = True, exists=True, unique=True, db=memgraph)
     text: str = Field(exists=True)
+    created_at: str = Field()
+
 
 class Tweeted(Relationship, type="TWEETED"):
     pass
