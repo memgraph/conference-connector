@@ -4,6 +4,8 @@ import styles from '../styles/Home.module.css'
 import PopUp from '../components/popup'
 import Footer from '../components/footer'
 import AlignItemsList from '../components/alignItemsList'
+import Graph from '../components/graph'
+import { Grid } from '@mui/material'
 
 const Home: NextPage = () => {
   return (
@@ -20,7 +22,14 @@ const Home: NextPage = () => {
           <PopUp></PopUp>
         </div>
       </div>
-      <AlignItemsList></AlignItemsList>
+      <Grid container spacing={4}>
+        <Grid item xs={2}>
+          <AlignItemsList></AlignItemsList>
+        </Grid>
+        <Grid item xs={10}>
+          <Graph></Graph>
+        </Grid>
+      </Grid>
       <Footer></Footer>
     </div>
   )

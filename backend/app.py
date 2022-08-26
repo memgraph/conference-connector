@@ -1,11 +1,17 @@
 from typing import Union
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from gqlalchemy import Match, Call
 from models import memgraph
 from twitter_data import (
     init_db_from_twitter,
     init_twitter_access,
     get_all_nodes_and_relationships,
+    get_participant_by_username,
+    whitelist_user,
+    is_user_in_database,
+    log_user,
+    save_and_claim,
 )
 import logging
 import os
@@ -16,11 +22,28 @@ import json
 log = logging.getLogger(__name__)
 users_log = logging.getLogger("users_log")
 app = FastAPI()
+origins = [
+    "http://localhost:3000",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def init_log():
     logging.basicConfig(level=logging.DEBUG)
     log.info("Logging enabled")
+
+
+def init_signups_log():
+    with open("signups.csv", "a", newline="") as file:
+        file.truncate()
+        file.write("username,name,email\n")
+    file.close()
 
 
 def connect_to_memgraph():
@@ -40,6 +63,7 @@ def connect_to_memgraph():
 def startup_event():
     init_log()
     init_twitter_access()
+    init_signups_log()
     connect_to_memgraph()
     init_db_from_twitter()
 
@@ -54,44 +78,29 @@ async def get_graph():
     return get_all_nodes_and_relationships()
 
 
-@app.post("/signup", status_code=200)
-async def log_signup(request: Request, response: Response):
+@app.post("/signup")
+async def log_signup(request: Request):
     user = await request.body()
-    log.info("A new user has signed up", user)
-    user_str = user.decode("utf-8")
-    with open("signups.txt", "a", newline="") as file:
-        file.write(user_str + "\n")
-    file.close()
 
     user_json = json.loads(user)
-    twitter_handle = user_json["username"]
-    log.info("Twitter handle:", twitter_handle)
+    username = user_json["username"]
+    name = user_json["name"]
+    email = user_json["email"]
+    log.info("Twitter handle:", username)
 
-    results = (
-        Match()
-        .node(labels="Participant", username=twitter_handle, variable="n")
-        .return_("n.username")
-        .execute()
-    )
+    log_user(username, name, email)
 
-    is_in_database = False if len(list(results)) == 0 else True
-    # TODO - check how to correctly return status codes to the frontend
-    # # check is valid twitter handle by connecting to the twitter API
-    # is_twitter_user = False
+    is_in_database = is_user_in_database(username)
 
-    # if is_in_database:
-    #     response.status_code = 201
-    #     return response
+    if is_in_database:
+        whitelist_user(username)
 
-    # # if the user is not already in the database and is twitter user
-    # if is_twitter_user:
-    #     # create user in the db
-    #     response.status_code = 204
-    #     return response
-
-    # # then the data is not validated well on the client side, try again
-    # else:
-    #     raise HTTPException(
-    #         status_code=400,
-    #         detail=f"User with the twitter handle {twitter_handle} does not exist in the database and is not an active Twitter user.",
-    #     )
+    else:
+        try:
+            participant = get_participant_by_username(username)
+            save_and_claim(participant)
+        except:
+            raise HTTPException(
+                status_code=404,
+                detail=f"User with username {username} does not exist on Twitter.",
+            )

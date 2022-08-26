@@ -5,50 +5,59 @@ from models import memgraph, Tweet, Participant, Tweeted
 from gqlalchemy import Match
 from datetime import datetime, timedelta
 import json
+from gqlalchemy.query_builders.memgraph_query_builder import Operator
+from models import Participant, Tweet, Tweeted
 
 twitter_client = Client(bearer_token=None)
 
 hashtag = "#memgraph"
 user = "kgolubic"
 
+
 def init_twitter_access():
-    bearer_token = env.get_required_env('BEARER_TOKEN')
+    bearer_token = env.get_required_env("BEARER_TOKEN")
     twitter_client.bearer_token = bearer_token
-        
+
 
 def get_latest_tweets_with_hashtag(hashtag: str, days: int = 0, hours: int = 1):
-    try: 
+    try:
         tweets = {}
-        last_hour = datetime.utcnow() - timedelta(days=days, hours = hours)
-        request = twitter_client.search_recent_tweets(query=hashtag + " -is:retweet", start_time=last_hour, tweet_fields=['context_annotations', 'created_at'], user_fields=['profile_image_url'], expansions=["author_id"])
-        users = {u["id"]: u for u in request.includes['users']}
+        last_hour = datetime.utcnow() - timedelta(days=days, hours=hours)
+        request = twitter_client.search_recent_tweets(
+            query=hashtag + " -is:retweet",
+            start_time=last_hour,
+            tweet_fields=["context_annotations", "created_at"],
+            user_fields=["profile_image_url"],
+            expansions=["author_id"],
+        )
+        users = {u["id"]: u for u in request.includes["users"]}
         for tweet in request.data:
             if users[tweet.author_id]:
                 user = users[tweet.author_id]
-                #print(str(tweet.author_id) + " " + str(tweet.id) + " " + tweet.text)
+                # print(str(tweet.author_id) + " " + str(tweet.id) + " " + tweet.text)
                 tweets[tweet.id] = {
-                    'id' : tweet.id,
-                    'text' : tweet.text,
-                    'created_at' : str(tweet.created_at),
-                    'participant_id' : user.id,
-                    'participant_name' : user.name,
-                    'participant_username' : user.username,
+                    "id": tweet.id,
+                    "text": tweet.text,
+                    "created_at": str(tweet.created_at),
+                    "participant_id": user.id,
+                    "participant_name": user.name,
+                    "participant_username": user.username,
                 }
         return tweets
-    except Exception as e: 
+    except Exception as e:
         traceback.print_exc()
- 
+
+
 def save_tweets_and_participant(tweets):
-    for key, tweet in tweets.items(): 
+    for key, tweet in tweets.items():
         tweet_node = Tweet(
-            id = tweet['id'],
-            text = tweet['text'],
-            created_at = tweet['created_at']
+            id=tweet["id"], text=tweet["text"], created_at=tweet["created_at"]
         ).save(memgraph)
         participant_node = Participant(
-            id = tweet['participant_id'],
-            name = tweet['participant_name'],
-            username = tweet['participant_username'],
+            id=tweet["participant_id"],
+            name=tweet["participant_name"],
+            username=tweet["participant_username"],
+            claimed=False,
         ).save(memgraph)
 
         tweeted_rel = Tweeted(
@@ -57,24 +66,35 @@ def save_tweets_and_participant(tweets):
 
 
 def save_participant(participant):
-    participant_node = models.Participant(
-        id = participant['id'],
-        name = participant['name'],
-        username = participant['username'],
-    )
-    print(participant_node)
+    Participant(
+        id=participant["id"],
+        name=participant["name"],
+        username=participant["username"],
+        claimed=False,
+    ).save(memgraph)
+
+
+def save_and_claim(participant):
+    Participant(
+        id=participant["id"],
+        name=participant["name"],
+        username=participant["username"],
+        claimed=True,
+    ).save(memgraph)
+
 
 def get_participant_by_username(username: str):
-    try: 
+    try:
         request = twitter_client.get_user(username=username)
         participant = {
-            'id' : request.data.id,
-            'name' : request.data.name,
-            'username' : request.data.username,
+            "id": request.data.id,
+            "name": request.data.name,
+            "username": request.data.username,
         }
         return participant
-    except Exception as e: 
-        traceback.print_exc()
+    except Exception as e:
+        raise e
+
 
 def get_all_nodes_and_relationships():
 
@@ -90,17 +110,15 @@ def get_all_nodes_and_relationships():
 
         graph = list()
         for result in results:
-            graph.append(result['p'])
-            graph.append(result['r'])
-            graph.append(result['t'])
-    
-            
+            graph.append(result["p"])
+            graph.append(result["r"])
+            graph.append(result["t"])
+
         return graph
 
     except Exception as e:
         traceback.print_exc()
         return ("", 500)
-
 
 
 def init_db_from_twitter():
@@ -109,3 +127,50 @@ def init_db_from_twitter():
     save_tweets_and_participant(tweets)
 
 
+def whitelist_user(username: str):
+    """Sets participant's claimed property to True.
+
+    Args:
+        username (str): Participant's username - Twitter handle
+    """
+    try:
+        (
+            Match()
+            .node(labels="Participant", username=username, variable="n")
+            .set_(item="n.claimed", operator=Operator.ASSIGNMENT, literal=True)
+            .return_()
+            .execute()
+        )
+    except Exception as e:
+        raise e
+
+
+def is_user_in_database(username: str):
+    """Checks if there is a user with certain username in the database.
+
+    Args:
+        username (str): Participant's username - Twitter handle
+    """
+
+    results = (
+        Match()
+        .node(labels="Participant", username=username, variable="n")
+        .return_("n.username")
+        .execute()
+    )
+
+    return False if len(list(results)) == 0 else True
+
+
+def log_user(username: str, email: str, name: str):
+    """Logs the user's data to the signups.csv file
+
+    Args:
+        username (str): Twitter handle
+        email (str): User's email
+        name (str): User's full name
+    """
+
+    with open("signups.csv", "a", newline="") as file:
+        file.write(username + "," + name + "," + email)
+    file.close()

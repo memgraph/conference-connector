@@ -56,7 +56,7 @@ export default function PopUp() {
             body: JSON.stringify(jsonData)
         }).then(response => {
             // check how to correctly read the response and status codes
-            console.log(response.json())
+            //console.log(response.json())
             //if the request is okay - user is in the database or is added now
             setIsConnected(true)
             //if the request is not okay - user gave the wrong handle, warn him!
