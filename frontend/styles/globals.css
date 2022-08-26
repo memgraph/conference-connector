@@ -22,6 +22,7 @@ body {
   padding: 0;
   margin: 0;
   font-family: var(--mg-font-family-alt);
+  height: 100%;
 }
 
 h1 {
@@ -69,4 +70,10 @@ a {
     color: white;
     background: black;
   }
+}
+
+
+#__next {
+  height: 100%;
+  position: relative;
 }
