@@ -22,10 +22,10 @@ def init_twitter_access():
 def get_latest_tweets_with_hashtag(hashtag: str, days: int = 0, hours: int = 1):
     try:
         tweets = {}
-        last_hour = datetime.utcnow() - timedelta(days=days, hours=hours)
+        start_time = datetime.utcnow() - timedelta(days=days, hours=hours)
         request = twitter_client.search_recent_tweets(
             query=hashtag + " -is:retweet",
-            start_time=last_hour,
+            start_time=start_time,
             tweet_fields=["context_annotations", "created_at"],
             user_fields=["profile_image_url"],
             expansions=["author_id"],
