@@ -127,7 +127,7 @@ def init_db_from_twitter():
     save_tweets_and_participant(tweets)
 
 
-def whitelist_user(username: str):
+def whitelist_participant(username: str):
     """Sets participant's claimed property to True.
 
     Args:
@@ -145,7 +145,7 @@ def whitelist_user(username: str):
         raise e
 
 
-def is_user_in_database(username: str):
+def is_participant(username: str):
     """Checks if there is a user with certain username in the database.
 
     Args:
@@ -162,13 +162,13 @@ def is_user_in_database(username: str):
     return False if len(list(results)) == 0 else True
 
 
-def log_user(username: str, email: str, name: str):
-    """Logs the user's data to the signups.csv file
+def log_participant(username: str, email: str, name: str):
+    """Logs the participant's data to the signups.csv file
 
     Args:
         username (str): Twitter handle
-        email (str): User's email
-        name (str): User's full name
+        email (str): Participant's email
+        name (str): Participant's full name
     """
 
     with open("signups.csv", "a", newline="") as file:

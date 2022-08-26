@@ -8,9 +8,9 @@ from twitter_data import (
     init_twitter_access,
     get_all_nodes_and_relationships,
     get_participant_by_username,
-    whitelist_user,
-    is_user_in_database,
-    log_user,
+    whitelist_participant,
+    is_participant,
+    log_participant,
     save_and_claim,
 )
 import logging
@@ -88,12 +88,12 @@ async def log_signup(request: Request):
     email = user_json["email"]
     log.info("Twitter handle:", username)
 
-    log_user(username, name, email)
+    log_participant(username, name, email)
 
-    is_in_database = is_user_in_database(username)
+    is_participant = is_participant(username)
 
-    if is_in_database:
-        whitelist_user(username)
+    if is_participant:
+        whitelist_participant(username)
 
     else:
         try:
