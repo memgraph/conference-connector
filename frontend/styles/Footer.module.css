@@ -1,0 +1,45 @@
+.footer {
+    margin-top: 100px;
+    background-color: #231f20;
+    position: absolute;
+    text-align: center;
+    height: 200px;
+    width: 100%;
+    bottom: 0.1em;
+    font-family: 'Roboto', sans-serif;
+}
+
+.footer img {
+    max-width: 10rem;
+    opacity: 0.5;
+}
+
+
+.footer img:hover {
+    opacity: 1;
+}
+
+.footerLogo {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    bottom: 1.3em;
+
+}
+
+.footerHead {
+    width: 50%;
+    bottom: 10em;
+    border-bottom: 1px solid #3e323f;
+    padding-bottom: 20px;
+    padding-top: 30px;
+    display: inline-block;
+}
+
+.footerHead img {
+    max-height: 35px;
+    display: inline-block;
+    margin-right: 10px;
+    margin-left: 10px;
+    opacity: 0.7;
+}
