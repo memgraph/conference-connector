@@ -134,19 +134,20 @@ def whitelist_participant(username: str):
         username (str): Participant's username - Twitter handle
     """
     try:
-        (
+        results = list(
             Match()
             .node(labels="Participant", username=username, variable="n")
             .set_(item="n.claimed", operator=Operator.ASSIGNMENT, literal=True)
             .return_()
             .execute()
         )
+
     except Exception as e:
         raise e
 
 
-def is_participant(username: str):
-    """Checks if there is a user with certain username in the database.
+def is_participant_in_db(username: str):
+    """Checks if there is a participant with certain username in the database.
 
     Args:
         username (str): Participant's username - Twitter handle

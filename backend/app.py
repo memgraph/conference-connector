@@ -9,7 +9,7 @@ from twitter_data import (
     get_all_nodes_and_relationships,
     get_participant_by_username,
     whitelist_participant,
-    is_participant,
+    is_participant_in_db,
     log_participant,
     save_and_claim,
 )
@@ -90,7 +90,7 @@ async def log_signup(request: Request):
 
     log_participant(username, name, email)
 
-    is_participant = is_participant(username)
+    is_participant = is_participant_in_db(username)
 
     if is_participant:
         whitelist_participant(username)
