@@ -9,19 +9,6 @@ logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="twitter_stream.log")
 logger.addHandler(handler)
 
-def connect_to_memgraph():
-
-    connection_established = False
-    while not connection_established:
-        try:
-            if memgraph._get_cached_connection().is_active():
-                connection_established = True
-                logger.info("Connected to memgraph.")
-                memgraph.drop_database()
-        except:
-            logger.info("Memgraph probably isn't running.")
-            time.sleep(4)
-
 
 class TweetStream(StreamingClient):
 
@@ -102,32 +89,30 @@ class TweetStream(StreamingClient):
         pass
 
 
-
-stream = TweetStream(
-    bearer_token="AAAAAAAAAAAAAAAAAAAAAKn5gAEAAAAAjQNLQxHyBfc75fLQ43prf0rR7rQ%3DtLUVQHj6rNKmW6jYZXdtce7bsIVwYnjImuDnpudo68BeznND2s"
-    )
-
 def clear_rules():
     rules=stream.get_rules()
     for rule in rules.data:
         print(rule.id)
         stream.delete_rules(rule[2])
 
-def init_stream():
+def rules_init():
     rules = stream.get_rules()
-    if len(rules) == 0:
-        print("setting rules")
-        rule = StreamRule("#ronaldo -is:retweet")
+    if rules.data == None:
+        logger.info("Setting streaming rules")
+        rule = StreamRule("#memgraph -is:retweet")
         stream.add_rules(rule)
-    print("Not setting rules")
+    else: 
+        for rule in rules.data:
+            logger.info(rule)
+
+def init_stream():
+    rules_init()
+
     stream.filter(
         threaded=True,
         tweet_fields=["context_annotations", "created_at"],
         user_fields=["profile_image_url"],
         expansions=["author_id"],
         )
-    # clear_rules()
 
-connect_to_memgraph()
-init_stream()
 

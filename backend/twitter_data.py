@@ -1,14 +1,15 @@
 import traceback
+import json
 from utils import env
 from tweepy import Client
-from models import memgraph, Tweet, Participant, Tweeted
 from gqlalchemy import Match
 from datetime import datetime, timedelta
-import json
 from gqlalchemy.query_builders.memgraph_query_builder import Operator
-from models import Participant, Tweet, Tweeted
+from models import Participant, Tweet, Tweeted, memgraph
+from twitter_stream import init_stream
 
 twitter_client = Client(bearer_token=None)
+
 
 hashtag = "#memgraph"
 user = "kgolubic"
@@ -125,6 +126,7 @@ def init_db_from_twitter():
     memgraph.drop_database()
     tweets = get_latest_tweets_with_hashtag(hashtag, days=7, hours=0)
     save_tweets_and_participant(tweets)
+    init_stream()
 
 
 def whitelist_participant(username: str):

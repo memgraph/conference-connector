@@ -68,6 +68,7 @@ def startup_event():
     init_db_from_twitter()
 
 
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
