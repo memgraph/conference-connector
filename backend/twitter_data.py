@@ -126,7 +126,7 @@ def init_db_from_twitter():
     memgraph.drop_database()
     tweets = get_latest_tweets_with_hashtag(hashtag, days=7, hours=0)
     save_tweets_and_participant(tweets)
-    init_stream()
+    init_stream(bearer_token= twitter_client.bearer_token)
 
 
 def whitelist_participant(username: str):

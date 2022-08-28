@@ -89,6 +89,10 @@ class TweetStream(StreamingClient):
         pass
 
 
+stream = TweetStream(
+    bearer_token=None
+)
+
 def clear_rules():
     rules=stream.get_rules()
     for rule in rules.data:
@@ -105,7 +109,8 @@ def rules_init():
         for rule in rules.data:
             logger.info(rule)
 
-def init_stream():
+def init_stream(bearer_token: str):
+    stream.bearer_token= bearer_token
     rules_init()
 
     stream.filter(
