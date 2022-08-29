@@ -379,3 +379,6 @@ mg_log/
 
 #vscode
 .vscode
+
+# Signup sheet - remove in production
+signups.csv
