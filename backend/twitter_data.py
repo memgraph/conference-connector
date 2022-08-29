@@ -1,12 +1,12 @@
 import traceback
+import json
 from utils import env
 from tweepy import Client
-from models import memgraph, Tweet, Participant, Tweeted
 from gqlalchemy import Match
 from datetime import datetime, timedelta
-import json
 from gqlalchemy.query_builders.memgraph_query_builder import Operator
-from models import Participant, Tweet, Tweeted
+from models import Participant, Tweet, Tweeted, memgraph
+from twitter_stream import init_stream
 
 twitter_client = Client(bearer_token=None)
 
@@ -19,13 +19,14 @@ def init_twitter_access():
     twitter_client.bearer_token = bearer_token
 
 
-def get_latest_tweets_with_hashtag(hashtag: str, days: int = 0, hours: int = 1):
+def get_tweets_history(hashtag: str, days: int = 0, hours: int = 1):
+    """Gets tweets from time period defined by the days and hours."""
     try:
         tweets = {}
-        last_hour = datetime.utcnow() - timedelta(days=days, hours=hours)
+        start_time = datetime.utcnow() - timedelta(days=days, hours=hours)
         request = twitter_client.search_recent_tweets(
             query=hashtag + " -is:retweet",
-            start_time=last_hour,
+            start_time=start_time,
             tweet_fields=["context_annotations", "created_at"],
             user_fields=["profile_image_url"],
             expansions=["author_id"],
@@ -97,7 +98,6 @@ def get_participant_by_username(username: str):
 
 
 def get_all_nodes_and_relationships():
-
     try:
         results = list(
             Match()
@@ -108,23 +108,72 @@ def get_all_nodes_and_relationships():
             .execute()
         )
 
-        graph = list()
-        for result in results:
-            graph.append(result["p"])
-            graph.append(result["r"])
-            graph.append(result["t"])
+        participant_nodes = set()
+        tweet_nodes = set()
+        tweeted_relationships = set()
 
-        return graph
+        for result in results:
+            participant = result["p"]
+            tweeted = result["r"]
+            tweet = result["t"]
+            print(participant)
+            print(tweeted)
+            print(tweet)
+
+            p_id = participant._id
+            p_label = next(iter(participant._labels))
+            p_twitter_id = participant._properties["id"]
+            p_twitter_name = participant._properties["name"]
+            p_twitter_username = participant._properties["username"]
+            p_twitter_claimed = participant._properties["claimed"]
+
+            t_id = tweet._id
+            t_label = next(iter(tweet._labels))
+            t_twitter_id = tweet._properties["id"]
+            t_twitter_text = tweet._properties["text"]
+            t_twitter_created_at = tweet._properties["created_at"]
+
+            r_id = tweeted._id
+            r_start = tweeted._start_node_id
+            r_end = tweeted._end_node_id
+            r_type = tweeted._type
+
+            participant_nodes.add(
+                (p_id, p_label,p_twitter_id, p_twitter_name, p_twitter_username, p_twitter_claimed))
+            tweet_nodes.add((t_id, t_label, t_twitter_id,
+                            t_twitter_text, t_twitter_created_at))
+            tweeted_relationships.add((r_id, r_start, r_end, r_type))
+
+        participants = [
+            {"node_id": node_id, "label": node_label, "id": id,
+                "name": name, "username": username, "claimed": claimed}
+            for node_id, node_label, id, name, username, claimed in participant_nodes
+        ]
+
+        tweets = [
+            {"node_id": node_id, "label": node_label, "id": id,
+                "text": text, "created_at": created_at}
+            for node_id, node_label, id, text, created_at in tweet_nodes
+        ]
+
+        tweeted = [
+            {"id": id, "start": start, "end": end, "type": rel_type} for id, start, end, rel_type in tweeted_relationships
+        ]
+
+        response = {"participants": participants,
+                    "tweets": tweets, "tweeted": tweeted}
+
+        return response
 
     except Exception as e:
         traceback.print_exc()
-        return ("", 500)
 
 
 def init_db_from_twitter():
     memgraph.drop_database()
-    tweets = get_latest_tweets_with_hashtag(hashtag, days=7, hours=0)
+    tweets = get_tweets_history(hashtag, days=7, hours=0)
     save_tweets_and_participant(tweets)
+    init_stream(bearer_token=twitter_client.bearer_token)
 
 
 def whitelist_participant(username: str):
