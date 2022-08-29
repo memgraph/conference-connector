@@ -10,6 +10,7 @@ import { Grid } from '@mui/material'
 const Home: NextPage = () => {
   return (
     <div className={styles.page}>
+
       <div className={styles.container}>
         <Head>
           <title>Conference Connector</title>
@@ -26,10 +27,10 @@ const Home: NextPage = () => {
         <Grid item xs={2}>
           <AlignItemsList></AlignItemsList>
         </Grid>
-        <Grid item xs={10}>
-          <Graph></Graph>
-        </Grid>
       </Grid>
+      <div className={styles.graphStyle}>
+        <Graph></Graph>
+      </div>
       <Footer></Footer>
     </div>
   )
