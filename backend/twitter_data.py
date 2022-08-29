@@ -136,31 +136,51 @@ def get_all_nodes_and_relationships():
             r_type = tweeted._type
 
             participant_nodes.add(
-                (p_id, p_label,p_twitter_id, p_twitter_name, p_twitter_username, p_twitter_claimed))
-            tweet_nodes.add((t_id, t_label, t_twitter_id,
-                            t_twitter_text, t_twitter_created_at))
+                (
+                    p_id,
+                    p_label,
+                    p_twitter_id,
+                    p_twitter_name,
+                    p_twitter_username,
+                    p_twitter_claimed,
+                )
+            )
+            tweet_nodes.add(
+                (t_id, t_label, t_twitter_id, t_twitter_text, t_twitter_created_at)
+            )
             tweeted_relationships.add((r_id, r_start, r_end, r_type))
 
         participants = [
-            {"id": id, "label": label, "p_id": p_id,
-                "name": name, "username": username, "claimed": claimed}
+            {
+                "id": id,
+                "label": label,
+                "p_id": p_id,
+                "name": name,
+                "username": username,
+                "claimed": claimed,
+            }
             for id, label, p_id, name, username, claimed in participant_nodes
         ]
 
         tweets = [
-            {"id": id, "label": label, "t_id": t_id,
-                "text": text, "created_at": created_at}
+            {
+                "id": id,
+                "label": label,
+                "t_id": t_id,
+                "text": text,
+                "created_at": created_at,
+            }
             for id, label, t_id, text, created_at in tweet_nodes
         ]
 
         tweeted = [
-            {"id": id, "start": start, "end": end, "type": rel_type} for id, start, end, rel_type in tweeted_relationships
+            {"id": id, "start": start, "end": end, "label": rel_type}
+            for id, start, end, rel_type in tweeted_relationships
         ]
 
         nodes = participants + tweets
 
-        response = {"nodes": nodes,
-                    "relationships": tweeted_relationships}
+        response = {"nodes": nodes, "relationships": tweeted}
         return response
 
     except Exception as e:
