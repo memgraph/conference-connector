@@ -106,6 +106,7 @@ def rules_init():
         rule = StreamRule("#memgraph -is:retweet")
         stream.add_rules(rule)
     else: 
+        logger.info("Following rules set: ")
         for rule in rules.data:
             logger.info(rule)
 

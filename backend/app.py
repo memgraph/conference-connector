@@ -76,7 +76,13 @@ def read_root():
 
 @app.get("/graph")
 async def get_graph():
-    return get_all_nodes_and_relationships()
+    try: 
+        return get_all_nodes_and_relationships()
+    except: 
+        raise HTTPException(
+            status_code=500,
+            detail="Issue with getting the graph."
+        )
 
 
 @app.post("/signup")
