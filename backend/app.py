@@ -1,6 +1,6 @@
 from typing import Union
 from fastapi import FastAPI, Request, Response, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from gqlalchemy import Match, Call
 from models import memgraph
 from twitter_data import (
@@ -68,7 +68,6 @@ def startup_event():
     init_db_from_twitter()
 
 
-
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
@@ -76,13 +75,10 @@ def read_root():
 
 @app.get("/graph")
 async def get_graph():
-    try: 
+    try:
         return get_all_nodes_and_relationships()
-    except: 
-        raise HTTPException(
-            status_code=500,
-            detail="Issue with getting the graph."
-        )
+    except:
+        raise HTTPException(status_code=500, detail="Issue with getting the graph.")
 
 
 @app.post("/signup")

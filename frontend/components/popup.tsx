@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -8,8 +7,6 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import MyButton from './mybutton';
 import * as EmailValidator from 'email-validator'
-import resolveProps from '@mui/utils/resolveProps';
-import test from 'node:test';
 
 export default function PopUp() {
     const textFieldSx = {
@@ -27,6 +24,19 @@ export default function PopUp() {
 
     var validator = require('email-validator')
 
+    const sendSignupData = async (userData: any) => {
+        const response = await fetch("http://localhost:8000/signup", {
+            method: 'POST',
+            mode: 'cors',
+            body: JSON.stringify(userData)
+        })
+
+        console.log(response.ok);
+        if (!response.ok) {
+            throw new Error('Data coud not be fetched!')
+        }
+    }
+
     const handleClickOpen = () => {
         console.log("open")
         setOpen(true);
@@ -38,7 +48,7 @@ export default function PopUp() {
     };
 
     const handleConnect = () => {
-        let jsonData = {
+        let userData = {
             "name": name,
             "username": username,
             "email": email
@@ -50,23 +60,27 @@ export default function PopUp() {
         console.log(name)
         console.log(email)
 
-        fetch("http://localhost:8000/signup", {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(jsonData)
-        }).then(response => {
-            // check how to correctly read the response and status codes
-            //console.log(response.json())
-            //if the request is okay - user is in the database or is added now
-            setIsConnected(true)
-            //if the request is not okay - user gave the wrong handle, warn him!
-        })
-            .then((responseJson) => {
-                console.log(responseJson)
-            })
-            .catch((error) => {
-                console.log(error)
-            });
+        sendSignupData(userData).then((data: any) => {
+            //setIsConnected(true);
+        }).catch((e) => console.log(e.message))
+
+        // fetch("http://localhost:8000/signup", {
+        //     method: 'POST',
+        //     mode: 'no-cors',
+        //     body: JSON.stringify(jsonData)
+        // }).then(response => {
+        //     // check how to correctly read the response and status codes
+        //     //console.log(response.json())
+        //     //if the request is okay - user is in the database or is added now
+        //     setIsConnected(true)
+        //     //if the request is not okay - user gave the wrong handle, warn him!
+        // })
+        //     .then((responseJson) => {
+        //         console.log(responseJson)
+        //     })
+        //     .catch((error) => {
+        //         console.log(error)
+        //     });
 
         setOpen(false);
     };

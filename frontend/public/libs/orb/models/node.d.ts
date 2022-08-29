@@ -7,6 +7,8 @@ import { IPosition } from '../common/position';
  * that user needs to define for a node.
  */
 export interface INodeBase {
+    username: string | undefined;
+    claimed: boolean;
     id: any;
 }
 /**

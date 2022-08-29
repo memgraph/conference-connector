@@ -1,46 +1,82 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { Socket } from "socket.io-client";
 import { Orb } from '../public/libs/orb/orb'
+import { DefaultEventsMap } from '@socket.io/component-emitter'
 
-export default function Graph() {
+interface Props {
+    socket: Socket<DefaultEventsMap, DefaultEventsMap>
+}
 
+
+const Graph: React.FC<Props> = ({
+    socket
+}) => {
+
+    const fetchData = async () => {
+        const response = await fetch('http://localhost:8000/graph')
+        if (!response.ok) {
+            throw new Error('Data coud not be fetched!')
+        } else {
+            return response.json()
+        }
+    }
 
 
     useEffect(() => {
-        // fetch('http://localhost:8000/graph')
-        //     .then((response) => response.json())
-        //     .then((data) => console.log(data));
-        const nodes = [
-            { id: 0, label: 'Node A' },
-            { id: 1, label: 'Node B' },
-            { id: 2, label: 'Node C' },
-        ];
-        const edges = [
-            { id: 0, start: 0, end: 0, label: 'Edge Q' },
-            { id: 1, start: 0, end: 1, label: 'Edge W' },
-            { id: 2, start: 0, end: 2, label: 'Edge E' },
-            { id: 3, start: 1, end: 2, label: 'Edge T' },
-            { id: 4, start: 2, end: 2, label: 'Edge Y' },
-            { id: 5, start: 0, end: 1, label: 'Edge V' },
-        ]
+        fetchData()
+            .then((res) => {
+                const container: HTMLElement = document.getElementById("graph")!;
+                const orb = new Orb(container);
+                let nodes = res.nodes;
+                let edges = res.relationships;
 
-        const container: HTMLElement = document.getElementById("graph")!;
-        const orb = new Orb(container);
+                // Initialize nodes and edges
+                orb.data.setup({ nodes, edges });
 
-        // Initialize nodes and edges
-        orb.data.setup({ nodes, edges });
+                orb.data
+                    .getNodes()
+                    .filter((node) => node.getLabel() === "Tweet")
+                    .forEach((node) => {
+                        node.properties.color = '#ff8000';
+                    });
+                orb.data
+                    .getNodes()
+                    .filter((node) => node.getLabel() === "Participant")
+                    .forEach((node) => {
+                        node.properties.label = node.data.username;
+                        node.properties.color = node.data.claimed ? '#ffe100' : '#D1D1D1';
+                    });
 
-        orb.view.render(() => {
-            orb.view.recenter()
-        });
+                orb.view.render(() => {
+                    orb.view.recenter()
+                });
+            })
+            .catch((e) => console.log(e.message))
+
+
+
+        // socket.on("connect", () => {
+        //     console.log("Connected to socket ", socket.id)
+        // });
+        // socket.on("connect_error", (err) => { console.log(err) });
+        // socket.on("disconnect", () => {
+        //     console.log("Disconnected from socket.")
+        // });
+
+        // socket.on("consumer", (msg) => {
+        //     console.log('Received a message from the WebSocket service: ', msg.data);
+        //     // merge nodes and edges
+        // });
+
     }, []);
 
 
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
-            <h1>Example 1</h1>
-            <p>Rendering a simple simulated graph on the default canvas (basic)</p>
             <div id="graph" style={{ flex: "1", width: "100%" }}>Hi graph!</div>
         </div>
     )
 
 }
+
+export default Graph;
