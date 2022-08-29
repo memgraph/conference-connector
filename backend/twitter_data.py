@@ -116,9 +116,6 @@ def get_all_nodes_and_relationships():
             participant = result["p"]
             tweeted = result["r"]
             tweet = result["t"]
-            print(participant)
-            print(tweeted)
-            print(tweet)
 
             p_id = participant._id
             p_label = next(iter(participant._labels))
@@ -145,28 +142,29 @@ def get_all_nodes_and_relationships():
             tweeted_relationships.add((r_id, r_start, r_end, r_type))
 
         participants = [
-            {"node_id": node_id, "label": node_label, "id": id,
+            {"id": id, "label": label, "p_id": p_id,
                 "name": name, "username": username, "claimed": claimed}
-            for node_id, node_label, id, name, username, claimed in participant_nodes
+            for id, label, p_id, name, username, claimed in participant_nodes
         ]
 
         tweets = [
-            {"node_id": node_id, "label": node_label, "id": id,
+            {"id": id, "label": label, "t_id": t_id,
                 "text": text, "created_at": created_at}
-            for node_id, node_label, id, text, created_at in tweet_nodes
+            for id, label, t_id, text, created_at in tweet_nodes
         ]
 
         tweeted = [
             {"id": id, "start": start, "end": end, "type": rel_type} for id, start, end, rel_type in tweeted_relationships
         ]
 
-        response = {"participants": participants,
-                    "tweets": tweets, "tweeted": tweeted}
+        nodes = participants + tweets
 
+        response = {"nodes": nodes,
+                    "relationships": tweeted_relationships}
         return response
 
     except Exception as e:
-        traceback.print_exc()
+        return e
 
 
 def init_db_from_twitter():
