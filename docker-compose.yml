@@ -8,6 +8,7 @@ services:
     entrypoint:
       [
         "/usr/lib/memgraph/memgraph",
+        "--telemetry-enabled=false",
       ]
     ports:
       - "7687:7687"
