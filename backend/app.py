@@ -12,6 +12,7 @@ from twitter_data import (
     is_participant_in_db,
     log_participant,
     save_and_claim,
+    get_participant_nodes_relationships,
 )
 import logging
 import os
@@ -83,6 +84,14 @@ async def get_graph():
             status_code=500,
             detail="Issue with getting the graph."
         )
+
+@app.get("/user/{username}")
+async def get_participant_subgraph(username: str):
+    try: 
+        log.warning("Call of the metod")
+        return get_participant_nodes_relationships(username)
+    except Exception as e: 
+        traceback.print_exc()
 
 
 @app.post("/signup")
