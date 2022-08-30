@@ -5,14 +5,19 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import MyButton from './mybutton';
+import Graph from './graph';
 
 export default function PopUp() {
     const [open, setOpen] = React.useState(false);
     const [username, setUsername] = React.useState("");
+    const [nodes, setNodes] = React.useState([]);
+    const [edges, setEdges] = React.useState([]);
+    const [isFound, setIsFound] = React.useState(false);
 
     const fetchParticipant = async (username: string) => {
         const response = await fetch('http://localhost:8000/user/' + username)
         if (!response.ok) {
+            console.log("error happened")
             throw new Error('Data could not be fetched!')
         } else {
             return response.json()
@@ -35,7 +40,12 @@ export default function PopUp() {
 
         fetchParticipant(username)
             .then((res) => {
-                console.log(res)
+                //console.log(res);
+                console.log(res.nodes)
+                console.log(res.relationships)
+                setNodes(res.nodes);
+                setEdges(res.relationships);
+                setIsFound(true);
             })
             .catch((e) => console.log(e.message));
 
@@ -75,7 +85,7 @@ export default function PopUp() {
                     <MyButton variant="text" onClick={handleConnect}>Find me</MyButton>
                 </DialogActions>
             </Dialog>
-
+            {isFound && <Graph nodes={nodes} edges={edges}></Graph>}
         </div>
 
     );

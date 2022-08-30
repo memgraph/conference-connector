@@ -4,19 +4,18 @@ import styles from '../styles/Home.module.css'
 import PopUp from '../components/popup'
 import Footer from '../components/footer'
 import AlignItemsList from '../components/alignItemsList'
-import Graph from '../components/graph'
 import { Grid } from '@mui/material'
 import io, { Socket } from 'socket.io-client'
 import { SetStateAction, useEffect, useState } from 'react'
 import { DefaultEventsMap } from '@socket.io/component-emitter'
-import User from '../components/participant'
-import Participant from '../components/participant'
+import User from '../components/graph'
+import Participant from '../components/graph'
 import Search from '../components/search'
+import MainGraph from '../components/mainGraph'
 
 let socket: Socket<DefaultEventsMap, DefaultEventsMap>;
 
 const Home: NextPage = () => {
-
   // useEffect(() => {
   //   socketInitializer();
   // }, []);
@@ -49,22 +48,22 @@ const Home: NextPage = () => {
         <div className={styles.description}>
           <PopUp></PopUp>
         </div>
-        <div className={styles.description}>
-          <Search></Search>
-        </div>
+
+        {/* <Search></Search> */}
+
       </div>
       {/* <Grid container spacing={4}>
         <Grid item xs={2}>
           <AlignItemsList></AlignItemsList>
         </Grid>
       </Grid> */}
-      <div className={styles.graphStyle}>
+      {/* <div className={styles.graphStyle}>
         <Graph socket={socket}></Graph>
-      </div>
+      </div> */}
       {/* <div className={styles.graphStyle}>
         <Participant ></Participant>
       </div> */}
-
+      <MainGraph></MainGraph>
       {/* <Footer></Footer> */}
     </div>
   )

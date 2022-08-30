@@ -1,82 +1,58 @@
-import { useEffect, useState } from "react"
-import { Socket } from "socket.io-client";
+import { useEffect } from 'react';
 import { Orb } from '../public/libs/orb/orb'
-import { DefaultEventsMap } from '@socket.io/component-emitter'
 
 interface Props {
-    socket: Socket<DefaultEventsMap, DefaultEventsMap>
+    nodes: any,
+    edges: any
 }
 
-
 const Graph: React.FC<Props> = ({
-    socket
+    nodes,
+    edges
 }) => {
 
-    const fetchData = async () => {
-        const response = await fetch('http://localhost:8000/graph')
-        if (!response.ok) {
-            throw new Error('Data could not be fetched!')
-        } else {
-            return response.json()
-        }
-    }
-
-
     useEffect(() => {
-        fetchData()
-            .then((res) => {
-                const container: HTMLElement = document.getElementById("graph")!;
-                const orb = new Orb(container);
-                let nodes = res.nodes;
-                let edges = res.relationships;
-
-                // Initialize nodes and edges
-                orb.data.setup({ nodes, edges });
-
-                orb.data
-                    .getNodes()
-                    .filter((node) => node.getLabel() === "Tweet")
-                    .forEach((node) => {
-                        node.properties.color = '#ff8000';
-                    });
-                orb.data
-                    .getNodes()
-                    .filter((node) => node.getLabel() === "Participant")
-                    .forEach((node) => {
-                        node.properties.label = node.data.username;
-                        node.properties.color = node.data.claimed ? '#ffe100' : '#D1D1D1';
-                    });
-
-                orb.view.render(() => {
-                    orb.view.recenter()
-                });
-            })
-            .catch((e) => console.log(e.message))
+        console.log("participant is here");
+        console.log(nodes);
+        console.log(edges);
+        const container: HTMLElement = document.getElementById("participant")!;
+        const orb = new Orb(container);
 
 
+        // Initialize nodes and edges
+        orb.data.setup({ nodes, edges });
+        console.log(orb.data.getNodes())
+        console.log(orb.data.getEdges())
 
-        // socket.on("connect", () => {
-        //     console.log("Connected to socket ", socket.id)
-        // });
-        // socket.on("connect_error", (err) => { console.log(err) });
-        // socket.on("disconnect", () => {
-        //     console.log("Disconnected from socket.")
-        // });
+        orb.data
+            .getNodes()
+            .filter((node) => node.getLabel() === "Tweet")
+            .forEach((node) => {
+                node.properties.color = '#ff8000';
+            });
+        orb.data
+            .getNodes()
+            .filter((node) => node.getLabel() === "Participant")
+            .forEach((node) => {
+                node.properties.label = node.data.username;
+                node.properties.color = node.data.claimed ? '#ffe100' : '#D1D1D1';
+            });
 
-        // socket.on("consumer", (msg) => {
-        //     console.log('Received a message from the WebSocket service: ', msg.data);
-        //     // merge nodes and edges
-        // });
+        orb.view.render(() => {
 
+            orb.view.recenter();
+
+        });
     }, []);
 
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
-            <div id="graph" style={{ flex: "1", width: "100%" }}>Hi graph!</div>
+        <div style={{ height: "800px" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
+                <div id="participant" style={{ flex: "1", width: "100%" }}>Hi graph!</div>
+            </div>
         </div>
     )
-
 }
 
 export default Graph;
