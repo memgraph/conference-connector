@@ -8,11 +8,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import MyButton from './mybutton';
 import * as EmailValidator from 'email-validator'
 
-export default function PopUp() {
-    const textFieldSx = {
-        color: "#fb6d00"
-    }
-
+export default function ClaimForm() {
     const [open, setOpen] = React.useState(true);
     const [username, setUsername] = React.useState("");
     const [name, setName] = React.useState("");
@@ -21,6 +17,8 @@ export default function PopUp() {
     const [isUsernameValid, setIsUsernameValid] = React.useState(true)
     const [isNameValid, setIsNameValid] = React.useState(false)
     const [isConnected, setIsConnected] = React.useState(false)
+    const [usernameLabel, setUsernameLabel] = React.useState("Twitter handle")
+    const [description, setDescription] = React.useState("")
 
     var validator = require('email-validator')
 
@@ -33,7 +31,17 @@ export default function PopUp() {
 
         console.log(response.ok);
         if (!response.ok) {
-            throw new Error('Data coud not be fetched!')
+            if (response.status === 404) {
+                setIsUsernameValid(false);
+                setUsernameLabel("Please enter a valid Twitter handle");
+            }
+            else {
+                //currently this happens only with ', quotes should be escaped in username
+                setDescription("Something went wrong. Please try again.");
+            }
+        }
+        else {
+            setOpen(false);
         }
     }
 
@@ -48,6 +56,7 @@ export default function PopUp() {
     };
 
     const handleConnect = () => {
+        // strip string if it begins with @
         let userData = {
             "name": name,
             "username": username,
@@ -82,7 +91,7 @@ export default function PopUp() {
         //         console.log(error)
         //     });
 
-        setOpen(false);
+
     };
 
     const handleNameChange = (e: { target: { value: string; }; }) => {
@@ -125,7 +134,7 @@ export default function PopUp() {
                 <DialogTitle>Come to the graph side</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Enter the prize pool <i className="fa-brands fa-twitter"></i>
+                        {description}
                     </DialogContentText>
                     <TextField
                         autoFocus
@@ -142,7 +151,7 @@ export default function PopUp() {
                         autoFocus
                         margin="dense"
                         id="username"
-                        label="Twitter handle"
+                        label={usernameLabel}
                         type="text"
                         error={!isUsernameValid}
                         fullWidth

@@ -1,7 +1,6 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
-import PopUp from '../components/popup'
 import Footer from '../components/footer'
 import AlignItemsList from '../components/alignItemsList'
 import { Grid } from '@mui/material'
@@ -12,8 +11,9 @@ import User from '../components/graph'
 import Participant from '../components/graph'
 import Search from '../components/search'
 import MainGraph from '../components/mainGraph'
+import ClaimForm from '../components/claimForm'
 
-let socket: Socket<DefaultEventsMap, DefaultEventsMap>;
+//let socket: Socket<DefaultEventsMap, DefaultEventsMap>;
 
 const Home: NextPage = () => {
   // useEffect(() => {
@@ -46,7 +46,7 @@ const Home: NextPage = () => {
           Conference Connector
         </h1>
         <div className={styles.description}>
-          <PopUp></PopUp>
+          <ClaimForm></ClaimForm>
         </div>
 
         {/* <Search></Search> */}

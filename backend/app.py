@@ -81,16 +81,15 @@ async def get_graph():
     except:
         raise HTTPException(status_code=500, detail="Issue with getting the graph.")
 
+
 @app.get("/user/{username}")
 async def get_participant_subgraph(username: str):
-    try: 
+    try:
         return get_participant_nodes_relationships(username)
-    except Exception as e: 
-         raise HTTPException(
-            status_code=500,
-            detail="Issue with getting the participant subgraph."
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail="Issue with getting the participant subgraph."
         )
-
 
 
 @app.post("/signup")
