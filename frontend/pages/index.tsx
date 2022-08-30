@@ -7,8 +7,11 @@ import AlignItemsList from '../components/alignItemsList'
 import Graph from '../components/graph'
 import { Grid } from '@mui/material'
 import io, { Socket } from 'socket.io-client'
-import { useEffect } from 'react'
+import { SetStateAction, useEffect, useState } from 'react'
 import { DefaultEventsMap } from '@socket.io/component-emitter'
+import User from '../components/participant'
+import Participant from '../components/participant'
+import Search from '../components/search'
 
 let socket: Socket<DefaultEventsMap, DefaultEventsMap>;
 
@@ -46,6 +49,9 @@ const Home: NextPage = () => {
         <div className={styles.description}>
           <PopUp></PopUp>
         </div>
+        <div className={styles.description}>
+          <Search></Search>
+        </div>
       </div>
       {/* <Grid container spacing={4}>
         <Grid item xs={2}>
@@ -55,6 +61,10 @@ const Home: NextPage = () => {
       <div className={styles.graphStyle}>
         <Graph socket={socket}></Graph>
       </div>
+      {/* <div className={styles.graphStyle}>
+        <Participant ></Participant>
+      </div> */}
+
       {/* <Footer></Footer> */}
     </div>
   )

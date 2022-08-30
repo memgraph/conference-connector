@@ -1,16 +1,8 @@
 import { useEffect, useState } from "react"
-import { Socket } from "socket.io-client";
 import { Orb } from '../public/libs/orb/orb'
-import { DefaultEventsMap } from '@socket.io/component-emitter'
-
-interface Props {
-    socket: Socket<DefaultEventsMap, DefaultEventsMap>
-}
 
 
-const Graph: React.FC<Props> = ({
-    socket
-}) => {
+const Participant: any = () => {
 
     const fetchData = async () => {
         const response = await fetch('http://localhost:8000/graph')
@@ -53,21 +45,6 @@ const Graph: React.FC<Props> = ({
             })
             .catch((e) => console.log(e.message))
 
-
-
-        // socket.on("connect", () => {
-        //     console.log("Connected to socket ", socket.id)
-        // });
-        // socket.on("connect_error", (err) => { console.log(err) });
-        // socket.on("disconnect", () => {
-        //     console.log("Disconnected from socket.")
-        // });
-
-        // socket.on("consumer", (msg) => {
-        //     console.log('Received a message from the WebSocket service: ', msg.data);
-        //     // merge nodes and edges
-        // });
-
     }, []);
 
 
@@ -79,4 +56,4 @@ const Graph: React.FC<Props> = ({
 
 }
 
-export default Graph;
+export default Participant;
