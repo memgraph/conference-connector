@@ -88,10 +88,13 @@ async def get_graph():
 @app.get("/user/{username}")
 async def get_participant_subgraph(username: str):
     try: 
-        log.warning("Call of the metod")
         return get_participant_nodes_relationships(username)
     except Exception as e: 
-        traceback.print_exc()
+         raise HTTPException(
+            status_code=500,
+            detail="Issue with getting the participant subgraph."
+        )
+
 
 
 @app.post("/signup")
