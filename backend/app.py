@@ -12,6 +12,7 @@ from twitter_data import (
     is_participant_in_db,
     log_participant,
     save_and_claim,
+    get_participant_nodes_relationships,
 )
 import logging
 import os
@@ -79,6 +80,17 @@ async def get_graph():
         return get_all_nodes_and_relationships()
     except:
         raise HTTPException(status_code=500, detail="Issue with getting the graph.")
+
+@app.get("/user/{username}")
+async def get_participant_subgraph(username: str):
+    try: 
+        return get_participant_nodes_relationships(username)
+    except Exception as e: 
+         raise HTTPException(
+            status_code=500,
+            detail="Issue with getting the participant subgraph."
+        )
+
 
 
 @app.post("/signup")
