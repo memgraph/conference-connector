@@ -1,6 +1,7 @@
 from typing import Union
-from fastapi import FastAPI, Request, Response, HTTPException
-from starlette.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request, Response, HTTPException, WebSocket
+from fastapi.testclient import TestClient
+from fastapi.middleware.cors import CORSMiddleware
 from gqlalchemy import Match, Call
 from models import memgraph
 from twitter_data import (
@@ -13,6 +14,7 @@ from twitter_data import (
     log_participant,
     save_and_claim,
     get_participant_nodes_relationships,
+    get_new_tweets
 )
 import logging
 import os
@@ -67,6 +69,8 @@ def startup_event():
     init_signups_log()
     connect_to_memgraph()
     init_db_from_twitter()
+    test_websocket()
+
 
 
 @app.get("/")
@@ -90,6 +94,8 @@ async def get_participant_subgraph(username: str):
         raise HTTPException(
             status_code=500, detail="Issue with getting the participant subgraph."
         )
+
+
 
 
 @app.post("/signup")
@@ -118,3 +124,26 @@ async def log_signup(request: Request):
                 status_code=404,
                 detail=f"User with username {username} does not exist on Twitter.",
             )
+
+
+@app.websocket("/newnodes")
+async def new_nodes(websocket: WebSocket):
+    await websocket.accept()
+    log.info("Connected websocket")
+    while True: 
+        data = get_new_tweets()
+        log.info("Logging data:")
+        log.info(data)
+        if data is not None:
+            await websocket.send_json(data)
+        else:
+            pass
+    await websocket.close()
+
+
+def test_websocket():
+    client = TestClient(app)
+    with client.websocket_connect("/newnodes") as websocket:
+        data = websocket.receive_json()
+        log.info(data)
+
