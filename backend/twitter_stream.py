@@ -1,6 +1,7 @@
 from tweepy import StreamingClient, StreamRule
 from gqlalchemy import Create
 from models import memgraph, Participant, Tweet, Tweeted
+from queue import Queue
 import logging
 import traceback
 
@@ -9,6 +10,7 @@ logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="twitter_stream.log")
 logger.addHandler(handler)
 
+nodes_relationship_queue = Queue()
 
 class TweetStream(StreamingClient):
 
@@ -58,6 +60,44 @@ class TweetStream(StreamingClient):
             )
 
             memgraph.save_relationship(tweeted_rel)
+
+            logger.info(participant_node)
+            logger.info(tweeted_rel)
+            logger.info(tweet_node)
+
+
+
+            
+            participant = {
+                "id": participant_node._id,
+                "label": next(iter(participant_node._labels)),
+                "p_id": participant_node._properties["id"],
+                "name": participant_node._properties["name"],
+                "username": participant_node._properties["username"],
+                "claimed": participant_node._properties["claimed"],
+            }
+
+            tweet = {
+                "id": tweet_node._id,
+                "label": next(iter(tweet_node._labels)),
+                "t_id": tweet_node._properties["id"],
+                "text": tweet_node._properties["text"],
+                "created_at": tweet_node._properties["created_at"],
+            }
+            
+
+            tweeted = {
+                "id": tweeted_rel._id, 
+                "start": tweeted_rel._start_node_id, 
+                "end": tweeted_rel._end_node_id, 
+                "label": tweeted_rel._type
+            }
+
+            nodes = [ participant, tweet]
+            relationships = [tweeted]
+
+            nodes_relationship_queue.put({"nodes": nodes, "relationships": relationships})
+
 
 
 
