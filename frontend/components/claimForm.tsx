@@ -9,7 +9,7 @@ import MyButton from './mybutton';
 import * as EmailValidator from 'email-validator'
 
 export default function ClaimForm() {
-    const [open, setOpen] = React.useState(true);
+    const [open, setOpen] = React.useState(false);
     const [username, setUsername] = React.useState("");
     const [name, setName] = React.useState("");
     const [email, setEmail] = React.useState("");

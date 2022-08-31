@@ -23,6 +23,7 @@ body {
   margin: 0;
   font-family: var(--mg-font-family-alt);
   height: 100%;
+  background-color: #F5F5F5;
 }
 
 h1 {
@@ -41,6 +42,12 @@ h3 {
   size: 2rem;
   line-height: 2.5rem;
   font-weight: 500;
+}
+
+h4 {
+  size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 400;
 }
 
 h1,

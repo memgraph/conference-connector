@@ -15,7 +15,7 @@ const Graph: React.FC<Props> = ({
         console.log("participant is here");
         console.log(nodes);
         console.log(edges);
-        const container: HTMLElement = document.getElementById("participant")!;
+        const container: HTMLElement = document.getElementById("graph")!;
         const orb = new Orb(container);
 
 
@@ -28,28 +28,34 @@ const Graph: React.FC<Props> = ({
             .getNodes()
             .filter((node) => node.getLabel() === "Tweet")
             .forEach((node) => {
-                node.properties.color = '#ff8000';
+                node.properties.color = '#8C0082';
+                node.properties.size = 3;
             });
+        orb.data
+            .getEdges()
+            .filter((edge) => edge.getLabel() === "TWEETED")
+            .forEach((edge) => {
+                edge.properties.fontSize = 2;
+            })
         orb.data
             .getNodes()
             .filter((node) => node.getLabel() === "Participant")
             .forEach((node) => {
                 node.properties.label = node.data.username;
-                node.properties.color = node.data.claimed ? '#ffe100' : '#D1D1D1';
+                node.properties.color = node.data.claimed ? '#FB6E00' : '#BAB8BB';
+                node.properties.size = 7;
             });
 
         orb.view.render(() => {
-
             orb.view.recenter();
-
         });
     }, []);
 
 
     return (
-        <div style={{ height: "800px" }}>
+        <div style={{ height: "764px" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
-                <div id="participant" style={{ flex: "1", width: "100%" }}>Hi graph!</div>
+                <div id="graph" style={{ flex: "1", width: "100%", zIndex: "2" }}>Hi graph!</div>
             </div>
         </div>
     )
