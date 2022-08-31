@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -8,14 +7,8 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import MyButton from './mybutton';
 import * as EmailValidator from 'email-validator'
-import resolveProps from '@mui/utils/resolveProps';
-import test from 'node:test';
 
-export default function PopUp() {
-    const textFieldSx = {
-        color: "#fb6d00"
-    }
-
+export default function ClaimForm() {
     const [open, setOpen] = React.useState(true);
     const [username, setUsername] = React.useState("");
     const [name, setName] = React.useState("");
@@ -24,8 +17,33 @@ export default function PopUp() {
     const [isUsernameValid, setIsUsernameValid] = React.useState(true)
     const [isNameValid, setIsNameValid] = React.useState(false)
     const [isConnected, setIsConnected] = React.useState(false)
+    const [usernameLabel, setUsernameLabel] = React.useState("Twitter handle")
+    const [description, setDescription] = React.useState("")
 
     var validator = require('email-validator')
+
+    const sendSignupData = async (userData: any) => {
+        const response = await fetch("http://localhost:8000/signup", {
+            method: 'POST',
+            mode: 'cors',
+            body: JSON.stringify(userData)
+        })
+
+        console.log(response.ok);
+        if (!response.ok) {
+            if (response.status === 404) {
+                setIsUsernameValid(false);
+                setUsernameLabel("Please enter a valid Twitter handle");
+            }
+            else {
+                //currently this happens only with ', quotes should be escaped in username
+                setDescription("Something went wrong. Please try again.");
+            }
+        }
+        else {
+            setOpen(false);
+        }
+    }
 
     const handleClickOpen = () => {
         console.log("open")
@@ -38,7 +56,8 @@ export default function PopUp() {
     };
 
     const handleConnect = () => {
-        let jsonData = {
+        // strip string if it begins with @
+        let userData = {
             "name": name,
             "username": username,
             "email": email
@@ -50,25 +69,29 @@ export default function PopUp() {
         console.log(name)
         console.log(email)
 
-        fetch("http://localhost:8000/signup", {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(jsonData)
-        }).then(response => {
-            // check how to correctly read the response and status codes
-            //console.log(response.json())
-            //if the request is okay - user is in the database or is added now
-            setIsConnected(true)
-            //if the request is not okay - user gave the wrong handle, warn him!
-        })
-            .then((responseJson) => {
-                console.log(responseJson)
-            })
-            .catch((error) => {
-                console.log(error)
-            });
+        sendSignupData(userData).then((data: any) => {
+            //setIsConnected(true);
+        }).catch((e) => console.log(e.message))
 
-        setOpen(false);
+        // fetch("http://localhost:8000/signup", {
+        //     method: 'POST',
+        //     mode: 'no-cors',
+        //     body: JSON.stringify(jsonData)
+        // }).then(response => {
+        //     // check how to correctly read the response and status codes
+        //     //console.log(response.json())
+        //     //if the request is okay - user is in the database or is added now
+        //     setIsConnected(true)
+        //     //if the request is not okay - user gave the wrong handle, warn him!
+        // })
+        //     .then((responseJson) => {
+        //         console.log(responseJson)
+        //     })
+        //     .catch((error) => {
+        //         console.log(error)
+        //     });
+
+
     };
 
     const handleNameChange = (e: { target: { value: string; }; }) => {
@@ -111,7 +134,7 @@ export default function PopUp() {
                 <DialogTitle>Come to the graph side</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Enter the prize pool <i className="fa-brands fa-twitter"></i>
+                        {description}
                     </DialogContentText>
                     <TextField
                         autoFocus
@@ -128,7 +151,7 @@ export default function PopUp() {
                         autoFocus
                         margin="dense"
                         id="username"
-                        label="Twitter handle"
+                        label={usernameLabel}
                         type="text"
                         error={!isUsernameValid}
                         fullWidth
