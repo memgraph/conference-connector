@@ -1,13 +1,14 @@
 import traceback
 import json
 import logging
+
 from utils import env
 from tweepy import Client
 from gqlalchemy import Match
 from datetime import datetime, timedelta
 from gqlalchemy.query_builders.memgraph_query_builder import Operator
 from models import Participant, Tweet, Tweeted, memgraph
-from twitter_stream import init_stream
+from twitter_stream import init_stream, nodes_relationship_queue
 
 twitter_client = Client(bearer_token=None)
 
@@ -193,12 +194,6 @@ def get_all_nodes_and_relationships():
         return e
 
 
-def init_db_from_twitter():
-    memgraph.drop_database()
-    tweets = get_tweets_history(hashtag, days=7, hours=0)
-    save_tweets_and_participant(tweets)
-    init_stream(bearer_token=twitter_client.bearer_token)
-
 
 def whitelist_participant(username: str):
     """Sets participant's claimed property to True.
@@ -336,4 +331,21 @@ def get_participant_nodes_relationships(username: str):
         response = {"nodes": nodes, "relationships": tweeted}
         return response
     except Exception as e: 
-        traceback.print_exc()
+        return e
+
+def get_new_tweets():
+    try:
+        data = nodes_relationship_queue.get()
+        return data
+    except Queue.Empty:
+        logger.info("No new tweets! ")
+        return None
+        
+        
+
+
+def init_db_from_twitter():
+    memgraph.drop_database()
+    tweets = get_tweets_history(hashtag, days=7, hours=0)
+    save_tweets_and_participant(tweets)
+    init_stream(bearer_token=twitter_client.bearer_token)
