@@ -24,6 +24,7 @@ body {
   font-family: var(--mg-font-family-alt);
   height: 100%;
   background-color: #F5F5F5;
+  z-index: 0;
 }
 
 h1 {

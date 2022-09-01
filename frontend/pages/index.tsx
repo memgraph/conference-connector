@@ -14,6 +14,8 @@ import MainGraph from '../components/mainGraph'
 import ClaimForm from '../components/claimForm'
 import LeaderboardCard from '../components/leaderboardCard'
 import Graph from '../components/graph'
+import JoinGraph from '../components/joinGraph'
+import ClaimFormNew from '../components/claimFormNew'
 
 //let socket: Socket<DefaultEventsMap, DefaultEventsMap>;
 
@@ -22,6 +24,19 @@ const Home: NextPage = () => {
   const [edges, setEdges] = useState([]);
   const [key, setKey] = useState("");
   const [isParticipant, setIsParticipant] = useState(false);
+  // get all claimed usernames
+  const [allData, setAllData] = useState([{ rank: "1", username: "memgraphdb", fullName: "Memgraph" }, { rank: "2", username: "AnteJavor", fullName: "Ante Javor" }, { rank: "3", username: "supe_katarina", fullName: "Katarina Supe" }, { rank: "4", username: "kgolubic", fullName: "Kruno Golubic" }, { rank: "5", username: "vpavicic", fullName: "Vlasta Pavicic" }]);
+  const [filteredData, setFilteredData] = useState(allData);
+
+
+  function handleUsernameChange(e: { target: { value: React.SetStateAction<string>; }; }) {
+    let value = String(e.target.value).toLowerCase();
+    let result = allData.filter((data) => {
+      let dataUsername = data.username.toLowerCase();
+      return dataUsername.search(value) != -1;
+    });
+    setFilteredData(result);
+  }
 
   function goToGraphView() {
     setIsParticipant(false);
@@ -45,7 +60,9 @@ const Home: NextPage = () => {
   // }, [nodes]);
 
   useEffect(() => {
-
+    // fetch leaderboard and create allData array
+    //setAllData
+    //setFilteredData
   }, [])
 
   return (
@@ -55,6 +72,11 @@ const Home: NextPage = () => {
         <title>Conference Connector</title>
         <meta name="description" content="Connect to Big Data London 2022 conference graph!" />
       </Head>
+      <div id="pop-up-background" className={styles.popUpBackground}>
+      </div>
+      <div id="pop-up" className={styles.popUp}>
+        <ClaimFormNew></ClaimFormNew>
+      </div>
       <div className={styles.bodyGrid}>
         <div className={styles.buttonBack} hidden={!isParticipant}>
           <button onClick={goToGraphView}>
@@ -72,23 +94,19 @@ const Home: NextPage = () => {
             <Grid container spacing={3}>
               <Grid item sm={12} xs={12}>
                 <div style={{ height: "464px" }}>
-                  <div className={styles.joinGraph}>
-                    <button className={styles.joinGraphButton}>
-                      Join the graph
-                    </button>
-                  </div>
+                  <JoinGraph></JoinGraph>
                   <div className={styles.leaderboard}>
                     <h2>Leaderboard</h2>
                     <div className={styles.searchLeaderboard}>
-                      <input type="text" placeholder="Enter a Twitter handle" />
+                      <input type="text" placeholder="Enter a Twitter handle" onChange={handleUsernameChange} />
                     </div>
                     <div className={styles.rankings}>
                       <Grid container spacing={1}>
-                        <LeaderboardCard rank="1" fullName="Memgraph" username="@memgraphdb" handleGraphUpdate={handleGraphUpdate}></LeaderboardCard>
-                        <LeaderboardCard rank="2" fullName="Ante Javor" username="@AnteJavor" handleGraphUpdate={handleGraphUpdate}></LeaderboardCard>
-                        <LeaderboardCard rank="3" fullName="Kruno Golubic" username="@kgolubic" handleGraphUpdate={handleGraphUpdate}></LeaderboardCard>
-                        <LeaderboardCard rank="4" fullName="Vlasta Pavicic" username="@vpavicic" handleGraphUpdate={handleGraphUpdate}></LeaderboardCard>
-                        <LeaderboardCard rank="4" fullName="Katarina Supe" username="@supe_katarina" handleGraphUpdate={handleGraphUpdate}></LeaderboardCard>
+                        {filteredData.map((value, index) => {
+                          return (
+                            <LeaderboardCard key={value.rank} rank={value.rank} fullName={value.fullName} username={value.username} handleGraphUpdate={handleGraphUpdate}></LeaderboardCard>
+                          );
+                        })}
                       </Grid>
                     </div>
                   </div>
@@ -97,7 +115,7 @@ const Home: NextPage = () => {
               {/* <Grid item sm={12} xs={12}>
                 <div style={{ backgroundColor: "#E6E6E6", height: "219px" }}>
                 </div>
-              </Grid> */}
+              </Grid>  */}
             </Grid>
           </Grid>
         </Grid>
