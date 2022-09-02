@@ -162,3 +162,5 @@ def init_stream(bearer_token: str):
         )
 
 
+def close_stream():
+    stream.disconnect()

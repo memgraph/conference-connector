@@ -14,7 +14,8 @@ from twitter_data import (
     log_participant,
     save_and_claim,
     get_participant_nodes_relationships,
-    get_new_tweets
+    get_new_tweets, 
+    close_connections
 )
 import logging
 import os
@@ -69,7 +70,7 @@ def startup_event():
     init_signups_log()
     connect_to_memgraph()
     init_db_from_twitter()
-    test_websocket()
+
 
 
 
@@ -141,9 +142,12 @@ async def new_nodes(websocket: WebSocket):
     await websocket.close()
 
 
-def test_websocket():
-    client = TestClient(app)
-    with client.websocket_connect("/newnodes") as websocket:
-        data = websocket.receive_json()
-        log.info(data)
+# def test_websocket():
+#     client = TestClient(app)
+#     with client.websocket_connect("/newnodes") as websocket:
+#         data = websocket.receive_json()
+#         log.info(data)
 
+@app.on_event("shutdown")
+def shutdown_event():
+   close_connections()
