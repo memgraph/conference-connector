@@ -2,19 +2,23 @@ import traceback
 import json
 import logging
 import time
+import sched
+from queue import Queue
 from utils import env
-from tweepy import Client
+from tweepy import Client, Paginator
 from gqlalchemy import Match
+from fastapi import BackgroundTasks
 from datetime import datetime, timedelta
 from gqlalchemy.query_builders.memgraph_query_builder import Operator
 from models import Participant, Tweet, Tweeted, Retweeted, Likes, Following, memgraph
 from twitter_stream import (
-    init_stream, 
+    init_stream,
     nodes_relationship_queue,
     close_stream,
 )
 
 twitter_client = Client(bearer_token=None)
+
 
 # TODO: Refactor as list of options in config file, #name, @name2, #name3... and remove brackets
 hashtag = "(#memgraph OR @Memgraph)"
@@ -24,6 +28,7 @@ logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="twitter_data.log")
 logger.addHandler(handler)
 
+relationship_queue = Queue()
 
 def init_twitter_access():
     bearer_token = env.get_required_env("BEARER_TOKEN")
@@ -66,8 +71,6 @@ def get_tweets_history(hashtag: str):
         raise e
 
 
-
-
 def save_history(tweets):
     try:
         for key, tweet in tweets.items():
@@ -80,80 +83,137 @@ def save_history(tweets):
                 id=tweet["participant_id"],
                 name=tweet["participant_name"],
                 username=tweet["participant_username"],
-                profile_image = tweet["participant_image"],
+                profile_image=tweet["participant_image"],
                 claimed=False,
             ).save(memgraph)
 
             tweeted_rel = Tweeted(
-                _start_node_id=tweet_node._id, _end_node_id= participant_node._id
+                _start_node_id=tweet_node._id, _end_node_id=participant_node._id
             ).save(memgraph)
 
     except Exception as e:
-            traceback.print_exc()
+        traceback.print_exc()
 
+
+def save_history_likes_retweets(tweets):
     try:
+        request_counter = 75
         for key, tweet in tweets.items():
-            print( "Processing: " + tweet["text"])
+            print("Processing: " + tweet["text"])
             retweets = get_tweet_retweets(tweet["id"])
             likes = get_tweet_likes(tweet["id"])
-            followers = get_participant_followers(tweet["participant_id"])
-
-            if likes is not None: 
-                for user in likes: 
-                    db_participant_node = list(Match().node(labels="Participant", variable="p", id=user.id).return_().execute())
-                    db_tweet_node = list(Match().node(labels="Tweet", variable="t", id=tweet["id"]).return_().execute())
+            request_counter = request_counter-1
+            if likes is not None:
+                for user in likes:
+                    db_participant_node = list(Match().node(
+                        labels="Participant", variable="p", id=user.id).return_().execute())
+                    db_tweet_node = list(Match().node(
+                        labels="Tweet", variable="t", id=tweet["id"]).return_().execute())
                     if len(db_participant_node) and len(db_tweet_node):
                         p = db_participant_node[0]["p"]
                         t = db_tweet_node[0]["t"]
                         Likes(
                             _start_node_id=p._id, _end_node_id=t._id
                         ).save(memgraph)
-            
+
             if retweets is not None:
                 for user in retweets:
-                    db_participant_node = list( Match().node(labels="Participant", variable="p", id=user.id).return_().execute())
-                    db_tweet_node = list(Match().node(labels="Tweet", variable="t", id=tweet["id"]).return_().execute())
+                    db_participant_node = list(Match().node(
+                        labels="Participant", variable="p", id=user.id).return_().execute())
+                    db_tweet_node = list(Match().node(
+                        labels="Tweet", variable="t", id=tweet["id"]).return_().execute())
                     if len(db_participant_node) and len(db_tweet_node):
                         p = db_participant_node[0]["p"]
                         t = db_tweet_node[0]["t"]
                         Retweeted(
                             _start_node_id=p._id, _end_node_id=t._id
                         ).save(memgraph)
+            if request_counter == 0:
+                # Sleep for 15 minutes to regenerate request window
+                time.sleep(900)
+                request_counter = 75
 
-            if followers is not None: 
-                for follower in followers: 
-                    db_follower_node = list( Match().node(labels="Participant", variable="f", id=follower.id).return_().execute())
-                    db_participant_node = list( Match().node(labels="Participant", variable="p", id=tweet["participant_id"]).return_().execute())
-                    if len(db_participant_node) and len(db_follower_node):
-                        f = db_follower_node[0]["f"]
-                        p = db_participant_node[0]["p"]
-                        Following(
-                            _start_node_id=f._id, _end_node_id=p._id
-                        ).save(memgraph)
-
-            time.sleep(60)
     except Exception as e:
         traceback.print_exc()
 
+
+def save_history_following():
+    try:
+        participants = (Match().node(labels="Participant",
+                        variable="p").return_().execute())
+        par_dic = {}
+        for participant in participants:
+            p = participant["p"]
+            par_dic[p._properties["id"]] = {
+                "id": p._id,
+            }
+        requests = 15
+        for t_id, participant in par_dic.items():
+            requests = requests - 1
+            followers = get_participant_followers(t_id)
+            if followers is not None:
+                for follower in followers:
+                    if follower.id in par_dic.keys():
+                        Following(
+                            _start_node_id=par_dic[follower.id]["id"], _end_node_id=participant["id"]
+                        ).save(memgraph)
+
+            if requests == 0:
+                time.sleep(900)
+                requests = 15
+    except Exception as e:
+        traceback.print_exc()
+
+
+
+
 def get_tweet_retweets(id: int):
-    users = twitter_client.get_retweeters(
-        id=id, user_fields=['profile_image_url'])
-    return users.data
+    users = list()
+    paginator = Paginator(
+        twitter_client.get_retweeters,
+        id=id,
+        user_fields=['profile_image_url'],
+        max_results=100,
+        limit=5
+    )
+    for page in paginator:
+        if page.data is not None:
+            users.extend(page.data)
+    return users
 
 
 def get_tweet_likes(id: int):
-    users = twitter_client.get_liking_users(
-        id=id, user_fields=['profile_image_url'])
-    return users.data
+    users = list()
+    paginator = Paginator(
+        twitter_client.get_liking_users,
+        id=id,
+        user_fields=['profile_image_url'],
+        max_results=100,
+        limit=5,
+    )
+    for page in paginator:
+        if page.data is not None:
+            users.extend(page.data)
+    return users
 
 
 def get_participant_followers(id: int):
-    users = twitter_client.get_users_followers(
-        id=id, user_fields=['profile_image_url'])
-    return users.data
+    followers = list()
+    paginator = Paginator(
+        twitter_client.get_users_followers,
+        id=id,
+        user_fields=['profile_image_url'],
+        max_results=100,
+        limit=5,
+    )
+    for page in paginator:
+        if page.data is not None:
+            followers.extend(page.data)
+    return followers
+
 
 def save_participant(participant):
-    #TODO: Fix image
+    # TODO: Fix image
     Participant(
         id=participant["id"],
         name=participant["name"],
@@ -212,7 +272,7 @@ def get_all_nodes_and_relationships():
                     participant_nodes.add(
                         (
                             n._id,
-                            n_label, 
+                            n_label,
                             n._properties["id"],
                             n._properties["name"],
                             n._properties["username"],
@@ -220,20 +280,21 @@ def get_all_nodes_and_relationships():
                             n._properties["claimed"],
                         )
                     )
-                if n_label == "Tweet": 
+                if n_label == "Tweet":
                     tweet_nodes.add(
                         (
                             n._id,
                             n_label,
                             n._properties["id"],
                             n._properties["text"],
-                            n._properties["created_at"],  
+                            n._properties["created_at"],
                         )
                     )
 
             r = result["r"]
-            relationships.add((r._id, r._start_node_id, r._end_node_id, r._type))
-  
+            relationships.add(
+                (r._id, r._start_node_id, r._end_node_id, r._type))
+
         participants = [
             {
                 "id": id,
@@ -241,7 +302,7 @@ def get_all_nodes_and_relationships():
                 "p_id": p_id,
                 "name": name,
                 "username": username,
-                "image" : image,
+                "image": image,
                 "claimed": claimed,
             }
             for id, label, p_id, name, username, image, claimed in participant_nodes
@@ -266,13 +327,10 @@ def get_all_nodes_and_relationships():
         nodes = participants + tweets
 
         response = {"nodes": nodes, "relationships": rel}
-        print(response)
         return response
 
     except Exception as e:
         return e
-
-
 
 
 def whitelist_participant(username: str):
@@ -325,7 +383,6 @@ def log_participant(username: str, email: str, name: str):
     file.close()
 
 
-
 def get_participant_nodes_relationships(username: str):
     try:
         results = (
@@ -350,7 +407,7 @@ def get_participant_nodes_relationships(username: str):
                     participant_nodes.add(
                         (
                             n._id,
-                            n_label, 
+                            n_label,
                             n._properties["id"],
                             n._properties["name"],
                             n._properties["username"],
@@ -358,19 +415,19 @@ def get_participant_nodes_relationships(username: str):
                             n._properties["claimed"],
                         )
                     )
-                if n_label == "Tweet": 
+                if n_label == "Tweet":
                     tweet_nodes.add(
                         (
                             n._id,
                             n_label,
                             n._properties["id"],
                             n._properties["text"],
-                            n._properties["created_at"],  
+                            n._properties["created_at"],
                         )
                     )
             r = result["r"]
-            relationships.add((r._id, r._start_node_id, r._end_node_id, r._type))
-  
+            relationships.add(
+                (r._id, r._start_node_id, r._end_node_id, r._type))
 
         participants = [
             {
@@ -379,7 +436,7 @@ def get_participant_nodes_relationships(username: str):
                 "p_id": p_id,
                 "name": name,
                 "username": username,
-                "image" : image,
+                "image": image,
                 "claimed": claimed,
             }
             for id, label, p_id, name, username, image, claimed in participant_nodes
@@ -404,28 +461,31 @@ def get_participant_nodes_relationships(username: str):
         nodes = participants + tweets
 
         response = {"nodes": nodes, "relationships": rel}
-        print(response)
         return response
 
-       
         return response
-    except Exception as e: 
+    except Exception as e:
         return e
+
 
 def get_new_tweets():
     try:
         data = nodes_relationship_queue.get()
+        relationship_queue.add(data)
         return data
     except Queue.Empty:
         logger.info("No new tweets! ")
         return None
-        
-        
+
+
 def init_db_from_twitter():
     memgraph.drop_database()
     tweets = get_tweets_history(hashtag)
-    save_tweets_history(tweets)
-    #init_stream(bearer_token=twitter_client.bearer_token)
+    save_history(tweets)
+    save_history_following()
+    save_history_likes_retweets(tweets)
+    # init_stream(bearer_token=twitter_client.bearer_token)
+
 
 def close_connections():
     close_stream()

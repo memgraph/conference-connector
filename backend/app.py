@@ -1,5 +1,5 @@
 from typing import Union
-from fastapi import FastAPI, Request, Response, HTTPException, WebSocket
+from fastapi import FastAPI, Request, Response, HTTPException, WebSocket, BackgroundTasks
 from fastapi.testclient import TestClient
 from fastapi.middleware.cors import CORSMiddleware
 from gqlalchemy import Match, Call
@@ -37,7 +37,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 def init_log():
     logging.basicConfig(level=logging.DEBUG)
     log.info("Logging enabled")
@@ -65,13 +64,12 @@ def connect_to_memgraph():
 
 @app.on_event("startup")
 def startup_event():
+
     init_log()
     init_twitter_access()
     init_signups_log()
     connect_to_memgraph()
     init_db_from_twitter()
-
-
 
 
 @app.get("/")
