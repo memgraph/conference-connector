@@ -5,7 +5,8 @@
     border-top-style: solid;
     position: fixed;
     text-align: center;
-    height: 102px;
+    /* height: 102px; */
+    height: 10vh;
     width: 100%;
     bottom: 0;
 }

@@ -13,7 +13,7 @@ const JoinGraph = () => {
     return (
         <div className={styles.joinGraph}>
             <button className={styles.joinGraphButton} onClick={onClick}>
-                Join the graph
+                JOIN THE GRAPH
             </button>
         </div>
     );

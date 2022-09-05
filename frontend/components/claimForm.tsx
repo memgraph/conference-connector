@@ -1,26 +1,89 @@
-import * as React from 'react';
-import TextField from '@mui/material/TextField';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import MyButton from './mybutton';
-import * as EmailValidator from 'email-validator'
+import { Grid } from "@mui/material";
+import { useState } from "react";
+import styles from '../styles/Home.module.css'
+
+
+
+
 
 export default function ClaimForm() {
-    const [open, setOpen] = React.useState(false);
-    const [username, setUsername] = React.useState("");
-    const [name, setName] = React.useState("");
-    const [email, setEmail] = React.useState("");
-    const [isEmailValid, setIsEmailValid] = React.useState(false)
-    const [isUsernameValid, setIsUsernameValid] = React.useState(true)
-    const [isNameValid, setIsNameValid] = React.useState(false)
-    const [isConnected, setIsConnected] = React.useState(false)
-    const [usernameLabel, setUsernameLabel] = React.useState("Twitter handle")
-    const [description, setDescription] = React.useState("")
+    const [username, setUsername] = useState("");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [isEmailValid, setIsEmailValid] = useState(false);
+    const [isUsernameValid, setIsUsernameValid] = useState(false);
+    const [isNameValid, setIsNameValid] = useState(false);
+    const [usernameLabel, setUsernameLabel] = useState("Twitter username");
 
-    var validator = require('email-validator')
+
+    const resetForm = () => {
+        setUsername("");
+        setName("");
+        setEmail("");
+        setIsEmailValid(false);
+        setIsUsernameValid(false);
+        setIsNameValid(false);
+        setUsernameLabel("Twitter username");
+        (document.getElementById("name") as HTMLInputElement).value = "";
+        (document.getElementById("email") as HTMLInputElement).value = "";
+        (document.getElementById("username") as HTMLInputElement).value = "";
+    }
+
+    const closeForm = () => {
+        resetForm();
+        let blur = document.getElementById("pop-up-background")!;
+        let popUp = document.getElementById("pop-up")!;
+        blur.style.display = "none";
+        popUp.style.display = "none";
+    }
+
+
+
+    const handleUsernameChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
+        let username = String(e.target.value);
+        let usernameInput = document.getElementById("username")!;
+
+        if (username !== "") {
+            setIsUsernameValid(true);
+            usernameInput.style.borderColor = "green";
+        }
+        else {
+            setIsUsernameValid(false);
+            usernameInput.style.borderColor = "red";
+        }
+        setUsername(username);
+    };
+
+    const handleEmailChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
+        const val = e.target.value;
+        let emailInput = document.getElementById("email")!;
+
+        if (validator.validate(val)) {
+            setIsEmailValid(true);
+            emailInput.style.borderColor = "green";
+        } else {
+            setIsEmailValid(false);
+            emailInput.style.borderColor = "red";
+        }
+
+        setEmail(val);
+    };
+
+    const handleNameChange = (e: { target: { value: string; }; }) => {
+        const reg = new RegExp(/^[a-zA-Z]+( [a-zA-Z]+)+$/);
+        const val = e.target.value;
+        let nameInput = document.getElementById("name")!;
+
+        if (reg.test(val)) {
+            setIsNameValid(true);
+            nameInput.style.borderColor = "green";
+        } else {
+            setIsNameValid(false);
+            nameInput.style.borderColor = "red";
+        }
+
+        setName(val);
+    };
 
     const sendSignupData = async (userData: any) => {
         const response = await fetch("http://localhost:8000/signup", {
@@ -37,146 +100,94 @@ export default function ClaimForm() {
             }
             else {
                 //currently this happens only with ', quotes should be escaped in username
-                setDescription("Something went wrong. Please try again.");
+                console.log("Something went wrong. Please try again.");
             }
         }
         else {
-            setOpen(false);
+            closeForm();
         }
     }
 
-    const handleClickOpen = () => {
-        console.log("open")
-        setOpen(true);
-    };
-
-    const handleClose = () => {
-        console.log("close")
-        setOpen(false);
-    };
-
-    const handleConnect = () => {
+    const handleJoin = () => {
         // strip string if it begins with @
+        let newUsername = username.charAt(0) === "@" ? username.substring(1) : username;
+
+
         let userData = {
             "name": name,
-            "username": username,
+            "username": newUsername,
             "email": email
 
         }
-
-        console.log("connect")
-        console.log(username)
-        console.log(name)
-        console.log(email)
 
         sendSignupData(userData).then((data: any) => {
             //setIsConnected(true);
         }).catch((e) => console.log(e.message))
 
-        // fetch("http://localhost:8000/signup", {
-        //     method: 'POST',
-        //     mode: 'no-cors',
-        //     body: JSON.stringify(jsonData)
-        // }).then(response => {
-        //     // check how to correctly read the response and status codes
-        //     //console.log(response.json())
-        //     //if the request is okay - user is in the database or is added now
-        //     setIsConnected(true)
-        //     //if the request is not okay - user gave the wrong handle, warn him!
-        // })
-        //     .then((responseJson) => {
-        //         console.log(responseJson)
-        //     })
-        //     .catch((error) => {
-        //         console.log(error)
-        //     });
-
-
     };
 
-    const handleNameChange = (e: { target: { value: string; }; }) => {
-        const reg = new RegExp(/^[a-zA-Z]+( [a-zA-Z]+)+$/)
-        const val = e.target.value
-
-        if (reg.test(val)) {
-            setIsNameValid(true);
-        } else {
-            setIsNameValid(false);
-        }
-
-        setName(val);
-    };
-
-    const handleUsernameChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
-        setUsername(e.target.value);
-    };
-
-    const handleEmailChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
-        const val = e.target.value
-
-        if (validator.validate(val)) {
-            setIsEmailValid(true);
-        } else {
-            setIsEmailValid(false);
-        }
-
-        setEmail(val);
-    };
-
-
+    var validator = require('email-validator');
     return (
-
         <div>
-            <MyButton variant="outlined" onClick={handleClickOpen} disabled={isConnected}>
-                Connect with the graph
-            </MyButton>
-            <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>Come to the graph side</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        {description}
-                    </DialogContentText>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="name"
-                        label="Full name"
-                        type="text"
-                        error={!isNameValid}
-                        fullWidth
-                        variant="standard"
-                        onChange={handleNameChange}
-                    />
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="username"
-                        label={usernameLabel}
-                        type="text"
-                        error={!isUsernameValid}
-                        fullWidth
-                        variant="standard"
-                        onChange={handleUsernameChange}
-                    />
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="name"
-                        label="Email"
-                        type="email"
-                        error={!isEmailValid}
-                        fullWidth
-                        variant="standard"
-                        onChange={handleEmailChange}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <MyButton variant="text" onClick={handleClose}>Close</MyButton>
-                    <MyButton disabled={!isUsernameValid || !isEmailValid || !isNameValid} variant="text" onClick={handleConnect}>Connect</MyButton>
-                </DialogActions>
-            </Dialog>
+            <div className={styles.formLogoImage}>
+                <a href="https://www.memgraph.com/" target="_blank" rel="noopener noreferrer">
+                    <img src='/home/memgraph-logo.png'></img>
+                </a>
+            </div>
 
+            <button className={styles.buttonClose} onClick={closeForm}>
+                <img src='/home/close-icon.svg'></img>
+            </button>
+
+
+            <div className={styles.claimForm}>
+
+                <Grid container spacing={3}>
+                    <Grid item sm={12} xs={12}>
+                        <h3>Join the graph!</h3>
+                    </Grid>
+                    <Grid item sm={12} xs={12}>
+                        <Grid container spacing={1}>
+                            <Grid item sm={12} xs={12}>
+                                <label className={styles.claimLabel}>{usernameLabel}</label>
+                            </Grid>
+                            <Grid item sm={12} xs={12}>
+                                <div className={styles.claimInput}>
+                                    <input id="username" type="text" placeholder="@username" onChange={handleUsernameChange} required></input>
+                                </div>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                    <Grid item sm={12} xs={12}>
+                        <Grid container spacing={1}>
+                            <Grid item sm={12} xs={12}>
+                                <label className={styles.claimLabel}>Email</label>
+                            </Grid>
+                            <Grid item sm={12} xs={12}>
+                                <div className={styles.claimInput}>
+                                    <input id="email" type="text" placeholder="username@gmail.com" onChange={handleEmailChange} required></input>
+                                </div>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                    <Grid item sm={12} xs={12}>
+                        <Grid container spacing={1}>
+                            <Grid item sm={12} xs={12}>
+                                <label className={styles.claimLabel}>Full name</label>
+                            </Grid>
+                            <Grid item sm={12} xs={12}>
+                                <div className={styles.claimInput}>
+                                    <input id="name" type="text" placeholder="John Smith" onChange={handleNameChange} required></input>
+                                </div>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                    <Grid item sm={12}>
+                        <button className={styles.joinButton} onClick={handleJoin} disabled={!isUsernameValid || !isEmailValid || !isNameValid}>Join</button>
+                    </Grid>
+                </Grid>
+            </div>
         </div>
 
-    );
+    )
 }

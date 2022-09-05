@@ -39,18 +39,18 @@ const LeaderboardCard: React.FC<Props> = ({ rank, fullName, username, handleGrap
             .catch((e) => console.log(e.message));
     }
     return (
-        <Grid item sm={12}>
+        <Grid item sm={12} xs={12}>
             <div className={styles.leaderboardCard}>
                 <div className={styles.rankingNumber}>
                     {rank}
                 </div>
                 <Grid container>
-                    <Grid item sm={12}>
+                    <Grid item sm={12} xs={12}>
                         <div className={styles.fullName}>
                             {fullName}
                         </div>
                     </Grid>
-                    <Grid item sm={12}>
+                    <Grid item sm={12} xs={12}>
                         <div className={styles.username}>
                             {username}
                         </div>
