@@ -97,7 +97,7 @@ def save_history(tweets):
 
 def save_history_likes_retweets(tweets):
     try:
-        request_counter = 74
+        request_counter = 35
         for key, tweet in tweets.items():
             print("Processing: " + tweet["text"])
             retweets = get_tweet_retweets(tweet["id"])
@@ -129,11 +129,10 @@ def save_history_likes_retweets(tweets):
                         Retweeted(
                             _start_node_id=p._id, _end_node_id=t._id
                         ).save(memgraph)
-            time.sleep(10)
             if request_counter == 0:
                 # Sleep for 15 minutes to regenerate request window
                 time.sleep(900)
-                request_counter = 74
+                request_counter = 35
 
     except Exception as e:
         traceback.print_exc()
@@ -149,7 +148,7 @@ def save_history_following():
             par_dic[p._properties["id"]] = {
                 "id": p._id,
             }
-        requests = 14
+        requests = 15
         for t_id, participant in par_dic.items():
             requests = requests - 1
             followers = get_participant_followers(t_id)
@@ -161,8 +160,9 @@ def save_history_following():
                         ).save(memgraph)
 
             if requests == 0:
+                # Sleep for 15 minutes to regenerate request window
                 time.sleep(900)
-                requests = 14
+                requests = 15
     except Exception as e:
         traceback.print_exc()
 
@@ -509,7 +509,7 @@ def init_db_from_twitter():
     save_history(tweets)
     # save_history_following()
     # save_history_likes_retweets(tweets)
-    # init_stream(bearer_token=twitter_client.bearer_token)
+    init_stream(bearer_token=twitter_client.bearer_token)
 
 
 def close_connections():

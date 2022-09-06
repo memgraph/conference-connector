@@ -10,6 +10,8 @@ logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="twitter_stream.log")
 logger.addHandler(handler)
 
+streaming_rule= "(#memgraph OR @Memgraph)"
+
 nodes_relationship_queue = Queue()
 
 class TweetStream(StreamingClient):
@@ -59,7 +61,6 @@ class TweetStream(StreamingClient):
                 _start_node_id=participant_node._id,
                 _end_node_id=tweet_node._id
             )
-
             tweeted_rel = memgraph.save_relationship(tweeted_rel)
 
             logger.info(participant_node)
@@ -140,7 +141,7 @@ def rules_init():
     rules = stream.get_rules()
     if rules.data == None:
         logger.info("Setting streaming rules")
-        rule = StreamRule("#memgraph -is:retweet")
+        rule = StreamRule(streaming_rule + " -is:retweet")
         stream.add_rules(rule)
     else: 
         logger.info("Following rules set: ")
@@ -148,7 +149,8 @@ def rules_init():
             logger.info(rule)
 
 def init_stream(bearer_token: str):
-    stream.bearer_token= bearer_tokens
+    stream.bearer_token = bearer_token
+    clear_rules()
     rules_init()
 
     stream.filter(
