@@ -10,6 +10,8 @@ logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="twitter_stream.log")
 logger.addHandler(handler)
 
+streaming_rule= "(#memgraph OR @Memgraph)"
+
 nodes_relationship_queue = Queue()
 
 class TweetStream(StreamingClient):
@@ -36,6 +38,7 @@ class TweetStream(StreamingClient):
                     "participant_id": user.id,
                     "participant_name": user.name,
                     "participant_username": user.username,
+                    "participant_image" : user.profile_image_url
                 }
 
              #TODO: Make it to use query builder not OGM
@@ -50,7 +53,7 @@ class TweetStream(StreamingClient):
                 id=tweet_data["participant_id"],
                 name=tweet_data["participant_name"],
                 username=tweet_data["participant_username"],
-                claimed=False,
+                profile_image=tweet_data["participant_image"]
             )
             participant_node = memgraph.save_node(participant_node)
 
@@ -58,15 +61,11 @@ class TweetStream(StreamingClient):
                 _start_node_id=participant_node._id,
                 _end_node_id=tweet_node._id
             )
-
-            memgraph.save_relationship(tweeted_rel)
+            tweeted_rel = memgraph.save_relationship(tweeted_rel)
 
             logger.info(participant_node)
             logger.info(tweeted_rel)
             logger.info(tweet_node)
-
-
-
             
             participant = {
                 "id": participant_node._id,
@@ -74,6 +73,7 @@ class TweetStream(StreamingClient):
                 "p_id": participant_node._properties["id"],
                 "name": participant_node._properties["name"],
                 "username": participant_node._properties["username"],
+                "image" : participant_node._properties["profile_image"],
                 "claimed": participant_node._properties["claimed"],
             }
 
@@ -97,8 +97,6 @@ class TweetStream(StreamingClient):
             relationships = [tweeted]
 
             nodes_relationship_queue.put({"nodes": nodes, "relationships": relationships})
-
-
 
 
         except Exception as e: 
@@ -143,7 +141,7 @@ def rules_init():
     rules = stream.get_rules()
     if rules.data == None:
         logger.info("Setting streaming rules")
-        rule = StreamRule("#memgraph -is:retweet")
+        rule = StreamRule(streaming_rule + " -is:retweet")
         stream.add_rules(rule)
     else: 
         logger.info("Following rules set: ")
@@ -151,7 +149,8 @@ def rules_init():
             logger.info(rule)
 
 def init_stream(bearer_token: str):
-    stream.bearer_token= bearer_token
+    stream.bearer_token = bearer_token
+    clear_rules()
     rules_init()
 
     stream.filter(
@@ -162,3 +161,5 @@ def init_stream(bearer_token: str):
         )
 
 
+def close_stream():
+    stream.disconnect()

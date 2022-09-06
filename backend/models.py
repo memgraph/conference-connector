@@ -8,8 +8,8 @@ class Participant(Node):
     id: int = Field(index=True, exists=True, unique=True, db=memgraph)
     username: str = Field(unique=True)
     name: str = Field()
-    claimed: bool = Field()
-
+    profile_image: str = Field()
+    claimed: bool = Field(default=False)
 
 class Tweet(Node):
     id: int = Field(index=True, exists=True, unique=True, db=memgraph)
