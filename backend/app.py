@@ -15,7 +15,8 @@ from twitter_data import (
     save_and_claim,
     get_participant_nodes_relationships,
     get_new_tweets, 
-    close_connections
+    close_connections,
+    get_ranked_participants
 )
 import logging
 import os
@@ -94,7 +95,15 @@ async def get_participant_subgraph(username: str):
             status_code=500, detail="Issue with getting the participant subgraph."
         )
 
-
+@app.get("/ranked")
+async def get_best_ranked():
+    try:
+        return get_ranked_participants()
+    except Exception as e: 
+        raise HTTPException(
+            status_code=500, 
+            detail="Issue with getting the best ranked participants."
+        )
 
 
 @app.post("/signup")

@@ -6,7 +6,7 @@ import sched
 from queue import Queue
 from utils import env
 from tweepy import Client, Paginator
-from gqlalchemy import Match
+from gqlalchemy import Match, Call
 from fastapi import BackgroundTasks
 from datetime import datetime, timedelta
 from gqlalchemy.query_builders.memgraph_query_builder import Operator
@@ -97,12 +97,13 @@ def save_history(tweets):
 
 def save_history_likes_retweets(tweets):
     try:
-        request_counter = 75
+        request_counter = 74
         for key, tweet in tweets.items():
             print("Processing: " + tweet["text"])
             retweets = get_tweet_retweets(tweet["id"])
             likes = get_tweet_likes(tweet["id"])
             request_counter = request_counter-1
+            logger.info(request_counter)
             if likes is not None:
                 for user in likes:
                     db_participant_node = list(Match().node(
@@ -128,10 +129,11 @@ def save_history_likes_retweets(tweets):
                         Retweeted(
                             _start_node_id=p._id, _end_node_id=t._id
                         ).save(memgraph)
+            time.sleep(10)
             if request_counter == 0:
                 # Sleep for 15 minutes to regenerate request window
                 time.sleep(900)
-                request_counter = 75
+                request_counter = 74
 
     except Exception as e:
         traceback.print_exc()
@@ -147,7 +149,7 @@ def save_history_following():
             par_dic[p._properties["id"]] = {
                 "id": p._id,
             }
-        requests = 15
+        requests = 14
         for t_id, participant in par_dic.items():
             requests = requests - 1
             followers = get_participant_followers(t_id)
@@ -160,12 +162,9 @@ def save_history_following():
 
             if requests == 0:
                 time.sleep(900)
-                requests = 15
+                requests = 14
     except Exception as e:
         traceback.print_exc()
-
-
-
 
 def get_tweet_retweets(id: int):
     users = list()
@@ -211,6 +210,32 @@ def get_participant_followers(id: int):
             followers.extend(page.data)
     return followers
 
+def get_ranked_participants():
+    try:
+        results = list(
+            Call("pagerank.get")
+            .yield_()
+            .with_({"node": "node", "rank":"rank"})
+            .add_custom_cypher("WHERE node:Participant")
+            .return_(
+                {"node.name":"name",
+                 "node.username": "username",
+                 "rank":"rank"
+                }
+            )
+            .order_by("rank DESC")
+            .limit(50)
+            .execute()
+        )
+        page_rank = list()
+        for result in results:
+            page_rank.append(result)
+        
+        response = {"page_rank": page_rank}
+        return response
+    except Exception as e: 
+        traceback.print_exc()
+        raise e
 
 def save_participant(participant):
     # TODO: Fix image
@@ -482,8 +507,8 @@ def init_db_from_twitter():
     memgraph.drop_database()
     tweets = get_tweets_history(hashtag)
     save_history(tweets)
-    save_history_following()
-    save_history_likes_retweets(tweets)
+    # save_history_following()
+    # save_history_likes_retweets(tweets)
     # init_stream(bearer_token=twitter_client.bearer_token)
 
 
