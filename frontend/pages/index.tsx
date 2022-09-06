@@ -2,70 +2,93 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 import Footer from '../components/footer'
-import AlignItemsList from '../components/alignItemsList'
 import { Grid } from '@mui/material'
 import io, { Socket } from 'socket.io-client'
-import { SetStateAction, useEffect, useState } from 'react'
-import { DefaultEventsMap } from '@socket.io/component-emitter'
-import User from '../components/graph'
-import Participant from '../components/graph'
-import Search from '../components/search'
+import { useEffect, useState } from 'react'
 import MainGraph from '../components/mainGraph'
-import ClaimForm from '../components/claimForm'
+import Graph from '../components/graph'
+import JoinGraph from '../components/joinGraph'
+import ClaimFormNew from '../components/claimForm'
+import LeaderboardContainer from '../components/leaderboardContainer'
 
 //let socket: Socket<DefaultEventsMap, DefaultEventsMap>;
 
 const Home: NextPage = () => {
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
+  const [key, setKey] = useState("");
+  const [isParticipant, setIsParticipant] = useState(false);
+
+  function goToGraphView() {
+    setIsParticipant(false);
+  }
+
+  function handleGraphUpdate(updatedNodes: any, updatedEdges: any, updatedUsername: string) {
+    console.log(updatedNodes);
+    console.log(updatedEdges);
+    let newNodes: any = [...updatedNodes];
+    let newEdges: any = [...updatedEdges];
+
+    setNodes(newNodes);
+    setEdges(newEdges);
+    setKey(updatedUsername);
+    setIsParticipant(true);
+  }
+
   // useEffect(() => {
-  //   socketInitializer();
-  // }, []);
+  //   console.log(nodes)
+  // }, [nodes]);
 
-  // const socketInitializer = async () => {
-  //   // We just call it because we don't need anything else out of it
-  //   await fetch("http://localhost:8000/");
+  useEffect(() => {
+    // fetch leaderboard and create allData array
+    //setAllData
+    //setFilteredData
+  }, [])
 
-  //   socket = io();
-
-  //   socket.on("newIncomingMessage", (msg) => {
-  //     // setMessages((currentMsg) => [
-  //     //   ...currentMsg,
-  //     //   { author: msg.author, message: msg.message },
-  //     // ]);
-  //     console.log(msg);
-  //   });
-  // };
   return (
     <div className={styles.page}>
 
-      <div className={styles.container}>
-        <Head>
-          <title>Conference Connector</title>
-          <meta name="description" content="Connect to Big Data London 2022 conference graph!" />
-        </Head>
-        <h1 className={styles.title}>
-          Conference Connector
-        </h1>
-        <div className={styles.description}>
-          <ClaimForm></ClaimForm>
-        </div>
-
-        {/* <Search></Search> */}
-
+      <Head>
+        <title>Conference Connector</title>
+        <meta name="description" content="Connect to Big Data London 2022 conference graph!" />
+      </Head>
+      <div id="pop-up-background" className={styles.popUpBackground}>
       </div>
-      {/* <Grid container spacing={4}>
-        <Grid item xs={2}>
-          <AlignItemsList></AlignItemsList>
+      <div id="pop-up" className={styles.popUp}>
+        <ClaimFormNew></ClaimFormNew>
+      </div>
+      <div className={styles.bodyGrid}>
+        <div className={styles.buttonBack} hidden={!isParticipant}>
+          <button onClick={goToGraphView}>
+            Back to main graph
+          </button>
+        </div>
+        <Grid container spacing={2}>
+          <Grid item sm={9} xs={12}>
+            {isParticipant
+              ? <Graph key={key} nodes={nodes} edges={edges}></Graph>
+              : <MainGraph></MainGraph>
+            }
+          </Grid>
+          <Grid item sm={3} xs={12}>
+            <Grid container spacing={3}>
+              <Grid item sm={12} xs={12}>
+                <div style={{ height: "464px" }}>
+                  <JoinGraph></JoinGraph>
+                  <LeaderboardContainer handleGraphUpdate={handleGraphUpdate}></LeaderboardContainer>
+                </div>
+              </Grid>
+              {/* <Grid item sm={12} xs={12}>
+                <div style={{ backgroundColor: "#E6E6E6", height: "219px" }}>
+                </div>
+              </Grid>  */}
+            </Grid>
+          </Grid>
         </Grid>
-      </Grid> */}
-      {/* <div className={styles.graphStyle}>
-        <Graph socket={socket}></Graph>
-      </div> */}
-      {/* <div className={styles.graphStyle}>
-        <Participant ></Participant>
-      </div> */}
-      <MainGraph></MainGraph>
-      {/* <Footer></Footer> */}
-    </div>
+      </div>
+      <Footer></Footer>
+
+    </div >
   )
 }
 

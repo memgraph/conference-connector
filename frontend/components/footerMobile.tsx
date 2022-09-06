@@ -1,46 +1,51 @@
-import { Grid } from '@mui/material';
-import styles from '../styles/Footer.module.css'
+import { Grid } from "@mui/material";
+import styles from '../styles/Home.module.css'
 
 
+const FooterMobile = () => {
 
-function Footer() {
     return (
-        <footer className={styles.footer}>
-            <Grid container height="100%">
-                <Grid item xs={12} sm={4}>
-                    <div className={styles.logo}>
+        <div className={styles.footerMobile}>
+            <Grid container>
+                <Grid item sm={12} xs={12}>
+                    <div className={styles.logoMobile}>
                         <a href="https://www.memgraph.com/" target="_blank" rel="noopener noreferrer">
                             <img src='/footer/Memgraph-logo-gradient-rgb.svg' alt='memgraph' />
                         </a>
                     </div>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                    <div className={styles.description}>
-                        Tweet @BigData_LDN & use #BigDataLDN
-                    </div>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                    <div className={styles.socials}>
+                <Grid item sm={3} xs={3}>
+                    <div className={styles.discordMobile}>
                         <a href="https://discord.gg/memgraph" target="_blank" rel="noopener noreferrer">
                             <img src='/footer/Discord.svg' alt='discord' />
                         </a>
+                    </div>
+                </Grid>
+                <Grid item sm={3} xs={3}>
+                    <div className={styles.githubMobile}>
                         <a href="https://github.com/memgraph" target="_blank" rel="noopener noreferrer">
                             <img src='/footer/Github.svg' alt='github' />
                         </a>
+                    </div>
+                </Grid>
+                <Grid item sm={3} xs={3}>
+                    <div className={styles.twitterMobile}>
                         <a href="https://twitter.com/memgraphdb" target="_blank" rel="noopener noreferrer">
                             <img src='/footer/Twitter.svg' alt='twitter' />
                         </a>
-                        <a href="https://www.facebook.com/memgraph/" target="_blank" rel="noopener noreferrer">
-                            <img src='/footer/Facebook.svg' alt='facebook' />
-                        </a>
+                    </div>
+                </Grid>
+                <Grid item sm={3} xs={3}>
+                    <div className={styles.linkedinMobile}>
                         <a href="https://www.linkedin.com/company/memgraph" target="_blank" rel="noopener noreferrer">
                             <img src='/footer/Linkedin.svg' alt='linkedin' />
                         </a>
                     </div>
                 </Grid>
+
             </Grid>
-        </footer>
+        </div>
     );
 }
 
-export default Footer;
+export default FooterMobile;

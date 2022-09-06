@@ -1,5 +1,12 @@
 from typing import Union
-from fastapi import FastAPI, Request, Response, HTTPException, WebSocket, BackgroundTasks
+from fastapi import (
+    FastAPI,
+    Request,
+    Response,
+    HTTPException,
+    WebSocket,
+    BackgroundTasks,
+)
 from fastapi.testclient import TestClient
 from fastapi.middleware.cors import CORSMiddleware
 from gqlalchemy import Match, Call
@@ -14,9 +21,9 @@ from twitter_data import (
     log_participant,
     save_and_claim,
     get_participant_nodes_relationships,
-    get_new_tweets, 
+    get_new_tweets,
     close_connections,
-    get_ranked_participants
+    get_ranked_participants,
 )
 import logging
 import os
@@ -37,6 +44,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 def init_log():
     logging.basicConfig(level=logging.DEBUG)
@@ -95,14 +103,14 @@ async def get_participant_subgraph(username: str):
             status_code=500, detail="Issue with getting the participant subgraph."
         )
 
+
 @app.get("/ranked")
 async def get_best_ranked():
     try:
         return get_ranked_participants()
-    except Exception as e: 
+    except Exception as e:
         raise HTTPException(
-            status_code=500, 
-            detail="Issue with getting the best ranked participants."
+            status_code=500, detail="Issue with getting the best ranked participants."
         )
 
 
@@ -138,7 +146,7 @@ async def log_signup(request: Request):
 async def new_nodes(websocket: WebSocket):
     await websocket.accept()
     log.info("Connected websocket")
-    while True: 
+    while True:
         data = get_new_tweets()
         log.info("Logging data:")
         log.info(data)
@@ -155,6 +163,7 @@ async def new_nodes(websocket: WebSocket):
 #         data = websocket.receive_json()
 #         log.info(data)
 
+
 @app.on_event("shutdown")
 def shutdown_event():
-   close_connections()
+    close_connections()

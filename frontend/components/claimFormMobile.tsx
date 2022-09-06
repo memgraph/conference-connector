@@ -4,8 +4,6 @@ import styles from '../styles/Home.module.css'
 
 
 
-
-
 export default function ClaimForm() {
     const [username, setUsername] = useState("");
     const [name, setName] = useState("");
@@ -13,6 +11,7 @@ export default function ClaimForm() {
     const [isEmailValid, setIsEmailValid] = useState(false);
     const [isUsernameValid, setIsUsernameValid] = useState(false);
     const [isNameValid, setIsNameValid] = useState(false);
+    const [invitationText, setInvitationText] = useState("Join the graph!");
     const [usernameLabel, setUsernameLabel] = useState("Twitter username");
 
 
@@ -28,15 +27,6 @@ export default function ClaimForm() {
         (document.getElementById("email") as HTMLInputElement).value = "";
         (document.getElementById("username") as HTMLInputElement).value = "";
     }
-
-    const closeForm = () => {
-        resetForm();
-        let blur = document.getElementById("pop-up-background")!;
-        let popUp = document.getElementById("pop-up")!;
-        blur.style.display = "none";
-        popUp.style.display = "none";
-    }
-
 
 
     const handleUsernameChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
@@ -104,14 +94,15 @@ export default function ClaimForm() {
             }
         }
         else {
-            closeForm();
+            //setIsConnected(true);
+            setInvitationText("Visit Memgraph booth number 230 and find yourself on the graph!");
+            resetForm();
         }
     }
 
     const handleJoin = () => {
         // strip string if it begins with @
         let newUsername = username.charAt(0) === "@" ? username.substring(1) : username;
-
 
         let userData = {
             "name": name,
@@ -121,12 +112,14 @@ export default function ClaimForm() {
         }
 
         sendSignupData(userData).then((data: any) => {
-            //setIsConnected(true);
-        }).catch((e) => console.log(e.message))
+        }).catch((e) => {
+            console.log(e.message)
+        });
 
     };
 
     var validator = require('email-validator');
+
     return (
         <div>
             <div className={styles.formLogoImage}>
@@ -134,17 +127,10 @@ export default function ClaimForm() {
                     <img src='/home/memgraph-logo.png'></img>
                 </a>
             </div>
-
-            <button className={styles.buttonClose} onClick={closeForm}>
-                <img src='/home/close-icon.svg'></img>
-            </button>
-
-
             <div className={styles.claimForm}>
-
                 <Grid container spacing={3}>
                     <Grid item sm={12} xs={12}>
-                        <h3>Join the graph!</h3>
+                        <h3>{invitationText}</h3>
                     </Grid>
                     <Grid item sm={12} xs={12}>
                         <Grid container spacing={1}>
@@ -183,11 +169,11 @@ export default function ClaimForm() {
                         </Grid>
                     </Grid>
                     <Grid item sm={12}>
-                        <button className={styles.joinButton} onClick={handleJoin} disabled={!isUsernameValid || !isEmailValid || !isNameValid}>Join</button>
+                        <button id="" className={styles.joinButton} onClick={handleJoin} disabled={!isUsernameValid || !isEmailValid || !isNameValid}>JOIN</button>
                     </Grid>
                 </Grid>
             </div>
-        </div>
 
+        </div>
     )
 }

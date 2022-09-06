@@ -10,7 +10,7 @@ from gqlalchemy import Match, Call
 from fastapi import BackgroundTasks
 from datetime import datetime, timedelta
 from gqlalchemy.query_builders.memgraph_query_builder import Operator
-from models import Participant, Tweet, Tweeted, Retweeted, Likes, Following, memgraph
+from models import Participant, Tweet, TweetedBy, Retweeted, Likes, Following, memgraph
 from twitter_stream import (
     init_stream,
     nodes_relationship_queue,
@@ -30,6 +30,7 @@ logger.addHandler(handler)
 
 relationship_queue = Queue()
 
+
 def init_twitter_access():
     bearer_token = env.get_required_env("BEARER_TOKEN")
     twitter_client.bearer_token = bearer_token
@@ -45,7 +46,7 @@ def get_tweets_history(hashtag: str):
             user_fields=["profile_image_url"],
             expansions=["author_id"],
             max_results=100,
-            limit=5
+            limit=5,
         )
 
         tweets = {}
@@ -61,7 +62,7 @@ def get_tweets_history(hashtag: str):
                         "participant_id": user.id,
                         "participant_name": user.name,
                         "participant_username": user.username,
-                        "participant_image": user.profile_image_url
+                        "participant_image": user.profile_image_url,
                     }
 
         return tweets
@@ -87,7 +88,7 @@ def save_history(tweets):
                 claimed=False,
             ).save(memgraph)
 
-            tweeted_rel = Tweeted(
+            tweeted_rel = TweetedBy(
                 _start_node_id=tweet_node._id, _end_node_id=participant_node._id
             ).save(memgraph)
 
@@ -102,33 +103,47 @@ def save_history_likes_retweets(tweets):
             print("Processing: " + tweet["text"])
             retweets = get_tweet_retweets(tweet["id"])
             likes = get_tweet_likes(tweet["id"])
-            request_counter = request_counter-1
+            request_counter = request_counter - 1
             logger.info(request_counter)
             if likes is not None:
                 for user in likes:
-                    db_participant_node = list(Match().node(
-                        labels="Participant", variable="p", id=user.id).return_().execute())
-                    db_tweet_node = list(Match().node(
-                        labels="Tweet", variable="t", id=tweet["id"]).return_().execute())
+                    db_participant_node = list(
+                        Match()
+                        .node(labels="Participant", variable="p", id=user.id)
+                        .return_()
+                        .execute()
+                    )
+                    db_tweet_node = list(
+                        Match()
+                        .node(labels="Tweet", variable="t", id=tweet["id"])
+                        .return_()
+                        .execute()
+                    )
                     if len(db_participant_node) and len(db_tweet_node):
                         p = db_participant_node[0]["p"]
                         t = db_tweet_node[0]["t"]
-                        Likes(
-                            _start_node_id=p._id, _end_node_id=t._id
-                        ).save(memgraph)
+                        Likes(_start_node_id=p._id, _end_node_id=t._id).save(memgraph)
 
             if retweets is not None:
                 for user in retweets:
-                    db_participant_node = list(Match().node(
-                        labels="Participant", variable="p", id=user.id).return_().execute())
-                    db_tweet_node = list(Match().node(
-                        labels="Tweet", variable="t", id=tweet["id"]).return_().execute())
+                    db_participant_node = list(
+                        Match()
+                        .node(labels="Participant", variable="p", id=user.id)
+                        .return_()
+                        .execute()
+                    )
+                    db_tweet_node = list(
+                        Match()
+                        .node(labels="Tweet", variable="t", id=tweet["id"])
+                        .return_()
+                        .execute()
+                    )
                     if len(db_participant_node) and len(db_tweet_node):
                         p = db_participant_node[0]["p"]
                         t = db_tweet_node[0]["t"]
-                        Retweeted(
-                            _start_node_id=p._id, _end_node_id=t._id
-                        ).save(memgraph)
+                        Retweeted(_start_node_id=p._id, _end_node_id=t._id).save(
+                            memgraph
+                        )
             if request_counter == 0:
                 # Sleep for 15 minutes to regenerate request window
                 time.sleep(900)
@@ -140,8 +155,9 @@ def save_history_likes_retweets(tweets):
 
 def save_history_following():
     try:
-        participants = (Match().node(labels="Participant",
-                        variable="p").return_().execute())
+        participants = (
+            Match().node(labels="Participant", variable="p").return_().execute()
+        )
         par_dic = {}
         for participant in participants:
             p = participant["p"]
@@ -156,7 +172,8 @@ def save_history_following():
                 for follower in followers:
                     if follower.id in par_dic.keys():
                         Following(
-                            _start_node_id=par_dic[follower.id]["id"], _end_node_id=participant["id"]
+                            _start_node_id=par_dic[follower.id]["id"],
+                            _end_node_id=participant["id"],
                         ).save(memgraph)
 
             if requests == 0:
@@ -166,14 +183,15 @@ def save_history_following():
     except Exception as e:
         traceback.print_exc()
 
+
 def get_tweet_retweets(id: int):
     users = list()
     paginator = Paginator(
         twitter_client.get_retweeters,
         id=id,
-        user_fields=['profile_image_url'],
+        user_fields=["profile_image_url"],
         max_results=100,
-        limit=5
+        limit=5,
     )
     for page in paginator:
         if page.data is not None:
@@ -186,7 +204,7 @@ def get_tweet_likes(id: int):
     paginator = Paginator(
         twitter_client.get_liking_users,
         id=id,
-        user_fields=['profile_image_url'],
+        user_fields=["profile_image_url"],
         max_results=100,
         limit=5,
     )
@@ -201,7 +219,7 @@ def get_participant_followers(id: int):
     paginator = Paginator(
         twitter_client.get_users_followers,
         id=id,
-        user_fields=['profile_image_url'],
+        user_fields=["profile_image_url"],
         max_results=100,
         limit=5,
     )
@@ -210,18 +228,16 @@ def get_participant_followers(id: int):
             followers.extend(page.data)
     return followers
 
+
 def get_ranked_participants():
     try:
         results = list(
             Call("pagerank.get")
             .yield_()
-            .with_({"node": "node", "rank":"rank"})
+            .with_({"node": "node", "rank": "rank"})
             .add_custom_cypher("WHERE node:Participant")
             .return_(
-                {"node.name":"name",
-                 "node.username": "username",
-                 "rank":"rank"
-                }
+                {"rank": "rank", "node.name": "fullName", "node.username": "username"}
             )
             .order_by("rank DESC")
             .limit(50)
@@ -230,12 +246,13 @@ def get_ranked_participants():
         page_rank = list()
         for result in results:
             page_rank.append(result)
-        
+
         response = {"page_rank": page_rank}
         return response
-    except Exception as e: 
+    except Exception as e:
         traceback.print_exc()
         raise e
+
 
 def save_participant(participant):
     # TODO: Fix image
@@ -265,7 +282,7 @@ def get_participant_by_username(username: str):
             "id": request.data.id,
             "name": request.data.name,
             "username": request.data.username,
-            "profile_image": request.data.profile_image_url
+            "profile_image": request.data.profile_image_url,
         }
         return participant
     except Exception as e:
@@ -317,8 +334,7 @@ def get_all_nodes_and_relationships():
                     )
 
             r = result["r"]
-            relationships.add(
-                (r._id, r._start_node_id, r._end_node_id, r._type))
+            relationships.add((r._id, r._start_node_id, r._end_node_id, r._type))
 
         participants = [
             {
@@ -413,7 +429,7 @@ def get_participant_nodes_relationships(username: str):
         results = (
             Match()
             .node(labels="Participant", username=username, variable="p")
-            .to(variable="r")
+            .from_(variable="r")
             .node(variable="m")
             .return_()
             .execute()
@@ -451,8 +467,7 @@ def get_participant_nodes_relationships(username: str):
                         )
                     )
             r = result["r"]
-            relationships.add(
-                (r._id, r._start_node_id, r._end_node_id, r._type))
+            relationships.add((r._id, r._start_node_id, r._end_node_id, r._type))
 
         participants = [
             {
@@ -488,7 +503,6 @@ def get_participant_nodes_relationships(username: str):
         response = {"nodes": nodes, "relationships": rel}
         return response
 
-        return response
     except Exception as e:
         return e
 
