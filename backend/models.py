@@ -11,13 +11,14 @@ class Participant(Node):
     profile_image: str = Field()
     claimed: bool = Field(default=False)
 
+
 class Tweet(Node):
     id: int = Field(index=True, exists=True, unique=True, db=memgraph)
     text: str = Field(exists=True)
     created_at: str = Field()
 
 
-class Tweeted(Relationship, type="TWEETED"):
+class TweetedBy(Relationship, type="TWEETED_BY"):
     pass
 
 

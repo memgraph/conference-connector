@@ -12,17 +12,12 @@ const Graph: React.FC<Props> = ({
 }) => {
 
     useEffect(() => {
-        console.log("participant is here");
-        console.log(nodes);
-        console.log(edges);
+
         const container: HTMLElement = document.getElementById("graph")!;
         const orb = new Orb(container);
 
-
         // Initialize nodes and edges
         orb.data.setup({ nodes, edges });
-        console.log(orb.data.getNodes())
-        console.log(orb.data.getEdges())
 
         orb.data
             .getNodes()
@@ -34,7 +29,7 @@ const Graph: React.FC<Props> = ({
             });
         orb.data
             .getEdges()
-            .filter((edge) => edge.getLabel() === "TWEETED")
+            .filter((edge) => edge.getLabel() === "TWEETED_BY")
             .forEach((edge) => {
                 edge.properties.fontSize = 2;
             })

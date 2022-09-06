@@ -37,8 +37,10 @@ const MainGraph = () => {
     // center circular loader
     else {
         return (
-            <Box sx={{ display: 'flex' }}>
-                <CircularProgress />
+            <Box sx={{ height: "100%" }} display="flex"
+                alignItems="center"
+                justifyContent="center">
+                <CircularProgress sx={{ color: 'gray' }} />
             </Box>
         );
     }

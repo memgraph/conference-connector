@@ -12,6 +12,7 @@ interface Props {
 
 const LeaderboardCard: React.FC<Props> = ({ rank, fullName, username, handleGraphUpdate }) => {
     const fetchParticipant = async (username: string) => {
+        console.log("USERNAME: %s", username);
         const response = await fetch('http://localhost:8000/user/' + username)
         if (!response.ok) {
             console.log("error happened")
@@ -34,7 +35,7 @@ const LeaderboardCard: React.FC<Props> = ({ rank, fullName, username, handleGrap
         fetchParticipant(stripMonkey(username))
             .then((res) => {
                 // send data to parent component
-                handleGraphUpdate(res.nodes, res.relationships, username)
+                handleGraphUpdate(res.nodes, res.relationships, username);
             })
             .catch((e) => console.log(e.message));
     }

@@ -20,10 +20,23 @@ const LeaderboardContainerMobile = () => {
         setFilteredData(result);
     }
 
+    const fetchLeaderboard = async () => {
+        const response = await fetch('http://localhost:8000/ranked')
+        if (!response.ok) {
+            console.log("error happened")
+            throw new Error('Data could not be fetched!')
+        } else {
+            return response.json()
+        }
+    }
+
     useEffect(() => {
-        // fetch leaderboard and create allData array
-        //setAllData
-        //setFilteredData
+        fetchLeaderboard()
+            .then((res) => {
+                setAllData(res.page_rank);
+                setFilteredData(res.page_rank);
+            })
+            .catch((e) => console.log(e.message));
     }, []);
 
 
