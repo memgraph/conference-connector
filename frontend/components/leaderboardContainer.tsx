@@ -4,12 +4,17 @@ import styles from '../styles/Home.module.css'
 import Leaderboard from './leaderboard';
 
 
+interface GraphData {
+    fullName: string;
+    username: string;
+}
+
 interface Props {
     handleGraphUpdate: any,
 }
 
 const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
-    const [allData, setAllData] = useState([{ rank: "1", username: "memgraphdb", fullName: "Memgraph" }, { rank: "2", username: "AnteJavor", fullName: "Ante Javor" }, { rank: "3", username: "supe_katarina", fullName: "Katarina Supe" }, { rank: "4", username: "kgolubic", fullName: "Kruno Golubic" }, { rank: "5", username: "vpavicic", fullName: "Vlasta Pavicic" }]);
+    const [allData, setAllData] = useState<Array<GraphData>>([]);
     const [filteredData, setFilteredData] = useState(allData);
 
 
@@ -23,6 +28,7 @@ const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
     }
 
     const fetchLeaderboard = async () => {
+        console.log("fetching leaderboard");
         const response = await fetch('http://localhost:8000/ranked')
         if (!response.ok) {
             console.log("error happened")
@@ -30,9 +36,10 @@ const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
         } else {
             return response.json()
         }
+
     }
 
-
+    // renders twice - can be changed in next.js config with reactStrictMode: false
     useEffect(() => {
         fetchLeaderboard()
             .then((res) => {
@@ -40,6 +47,9 @@ const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
                 setFilteredData(res.page_rank);
             })
             .catch((e) => console.log(e.message));
+
+        // fetch every 30 seconds
+        setInterval(fetchLeaderboard, 30000);
     }, []);
 
 

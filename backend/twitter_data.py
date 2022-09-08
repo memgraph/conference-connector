@@ -240,8 +240,13 @@ def get_ranked_participants():
         )
         page_rank = list()
         for result in results:
-            page_rank.append(result)
-
+            participant = result["p"]
+            page_rank.append(
+                {
+                    "fullName": participant._properties["name"],
+                    "username": participant._properties["username"],
+                }
+            )
         response = {"page_rank": page_rank}
         return response
     except Exception as e:
@@ -315,7 +320,7 @@ def get_all_nodes_and_relationships():
                             n._properties["username"],
                             n._properties["profile_image"],
                             n._properties["claimed"],
-                            n._properties["rank"]
+                            n._properties["rank"],
                         )
                     )
                 if n_label == "Tweet":
@@ -341,7 +346,7 @@ def get_all_nodes_and_relationships():
                 "username": username,
                 "image": image,
                 "claimed": claimed,
-                "rank": rank
+                "rank": rank,
             }
             for id, label, p_id, name, username, image, claimed, rank in participant_nodes
         ]
@@ -451,7 +456,7 @@ def get_participant_nodes_relationships(username: str):
                             n._properties["username"],
                             n._properties["profile_image"],
                             n._properties["claimed"],
-                            n._properties["rank"]
+                            n._properties["rank"],
                         )
                     )
                 if n_label == "Tweet":
@@ -476,7 +481,7 @@ def get_participant_nodes_relationships(username: str):
                 "username": username,
                 "image": image,
                 "claimed": claimed,
-                "rank" : rank
+                "rank": rank,
             }
             for id, label, p_id, name, username, image, claimed, rank in participant_nodes
         ]
@@ -508,7 +513,7 @@ def get_participant_nodes_relationships(username: str):
 
 def get_new_tweets():
     try:
-        data=nodes_queue.get()
+        data = nodes_queue.get()
     except Queue.Empty:
         logger.info("No new tweets! ")
 
@@ -518,7 +523,7 @@ def init_db_from_twitter():
     save_history(tweets)
     # save_history_following()
     # save_history_likes_retweets(tweets)
-    init_stream(bearer_token=twitter_client.bearer_token)
+    # init_stream(bearer_token=twitter_client.bearer_token)
 
 
 def close_connections():

@@ -31,9 +31,22 @@ const LeaderboardCard: React.FC<Props> = ({ rank, fullName, username, handleGrap
         }
     }
 
+    function cleanTweet() {
+        let tweetText = document.getElementById("tweet-text")!;
+        //fade out
+        tweetText.style.opacity = "0";
+        //wait for the transition
+        setTimeout(function () {
+            tweetText.innerHTML = "";
+            //fade in
+            tweetText.style.opacity = "1";
+        }, 500);
+    }
+
     function handleClick() {
         fetchParticipant(stripMonkey(username))
             .then((res) => {
+                cleanTweet();
                 // send data to parent component
                 handleGraphUpdate(res.nodes, res.relationships, username);
             })

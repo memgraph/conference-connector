@@ -10,11 +10,12 @@ const MainGraph = () => {
     const [isLoaded, setIsLoaded] = useState(false);
 
     const fetchData = async () => {
-        const response = await fetch('http://localhost:8000/graph')
+        console.log("fetching main graph");
+        const response = await fetch('http://localhost:8000/graph');
         if (!response.ok) {
-            throw new Error('Data could not be fetched!')
+            throw new Error('Data could not be fetched!');
         } else {
-            return response.json()
+            return response.json();
         }
     }
 
@@ -27,6 +28,7 @@ const MainGraph = () => {
             })
             .catch((e) => console.log(e.message))
 
+        setInterval(fetchData, 10000);
     }, []);
 
     if (isLoaded) {
