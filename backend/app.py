@@ -21,7 +21,6 @@ from twitter_data import (
     log_participant,
     save_and_claim,
     get_participant_nodes_relationships,
-    get_new_tweets,
     close_connections,
     get_ranked_participants,
 )
@@ -87,7 +86,6 @@ def set_up_memgraph():
 
 @app.on_event("startup")
 def startup_event():
-
     init_log()
     init_twitter_access()
     init_signups_log()
@@ -157,61 +155,7 @@ async def log_signup(request: Request):
             )
 
 
-@app.websocket("/newnodes")
-async def new_nodes(websocket: WebSocket):
-    await websocket.accept()
-    log.info("Connected websocket")
-    while True:
-        data = get_new_tweets()
-        log.info("Logging data:")
-        log.info(data)
-        if data is not None:
-            await websocket.send_json(data)
-        else:
-            pass
-    await websocket.close()
-
-
 @app.on_event("shutdown")
 def shutdown_event():
     close_connections()
 
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: List[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
-
-    async def send_new_nodes(self, node, websocket: WebSocket):
-        await websocket.send_json(node)
-
-    async def broadcast(self, message: str):
-        for connection in self.active_connections:
-            await connection.send_text(message)
-
-manager = ConnectionManager()
-
-@app.websocket("/ws/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, client_id: int):
-    await manager.connect(websocket)
-    log.info()
-    now = datetime.now()
-    current_time = now.strftime("%H:%M")
-    try:
-        while True:
-            tweets = get_new_tweets()
-            if data is not None:
-                await manager.send_new_nodes(tweets, websocket)
-            client_data = await websocket.receive_text()
-            message = {"time":current_time,"clientId":client_id,"message":client_data}
-            await manager.broadcast(json.dumps(message))
-            
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
-        message = {"time":current_time,"clientId":client_id,"message":"Offline"}
-        await manager.broadcast(json.dumps(message))

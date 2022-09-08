@@ -1,7 +1,7 @@
 from tweepy import StreamingClient, StreamRule
 from gqlalchemy import Create
 from models import memgraph, Participant, Tweet, TweetedBy
-from queue import Queue
+from collections import deque
 import logging
 import traceback
 
@@ -12,7 +12,7 @@ logger.addHandler(handler)
 
 streaming_rule = "(#memgraph OR @Memgraph)"
 
-nodes_relationship_queue = Queue()
+tweet_backlog = deque()
 
 
 class TweetStream(StreamingClient):
@@ -57,7 +57,7 @@ class TweetStream(StreamingClient):
             participant_node = memgraph.save_node(participant_node)
 
             tweeted_rel = TweetedBy(
-                _start_node_id=participant_node._id, _end_node_id=tweet_node._id
+                _start_node_id=tweet_node._id, _end_node_id=participant_node._id
             )
             tweeted_rel = memgraph.save_relationship(tweeted_rel)
 
@@ -93,9 +93,7 @@ class TweetStream(StreamingClient):
             nodes = [participant, tweet]
             relationships = [tweeted]
 
-            nodes_relationship_queue.put(
-                {"nodes": nodes, "relationships": relationships}
-            )
+            tweet_backlog.appendleft(tweet)
 
         except Exception as e:
             traceback.print_exc()

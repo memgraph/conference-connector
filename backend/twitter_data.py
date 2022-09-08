@@ -2,7 +2,10 @@ import traceback
 import json
 import logging
 import time
-import sched
+
+import threading
+import schedule
+from datetime import datetime, timezone
 from queue import Queue
 from utils import env
 from tweepy import Client, Paginator
@@ -13,7 +16,7 @@ from gqlalchemy.query_builders.memgraph_query_builder import Operator, Order
 from models import Participant, Tweet, TweetedBy, Retweeted, Likes, Following, memgraph
 from twitter_stream import (
     init_stream,
-    nodes_relationship_queue,
+    tweet_backlog,
     close_stream,
 )
 
@@ -28,8 +31,8 @@ logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="twitter_data.log")
 logger.addHandler(handler)
 
-relationship_queue = Queue()
-
+request_limit = None
+running_thread = None
 
 def init_twitter_access():
     bearer_token = env.get_required_env("BEARER_TOKEN")
@@ -104,7 +107,6 @@ def save_history_likes_retweets(tweets):
             retweets = get_tweet_retweets(tweet["id"])
             likes = get_tweet_likes(tweet["id"])
             request_counter = request_counter - 1
-            logger.info(request_counter)
             if likes is not None:
                 for user in likes:
                     db_participant_node = list(
@@ -240,7 +242,12 @@ def get_ranked_participants():
         )
         page_rank = list()
         for result in results:
-            page_rank.append(result)
+            participant = result["p"]
+            page_rank.append({
+                "rank": participant._properties["rank"],
+                "name": participant._properties["name"],
+                "username": participant._properties["username"]
+            })
 
         response = {"page_rank": page_rank}
         return response
@@ -505,24 +512,101 @@ def get_participant_nodes_relationships(username: str):
     except Exception as e:
         return e
 
+def run_continuously(interval=1):
+    cease_continuous_run = threading.Event()
+    class ScheduleThread(threading.Thread):
+        @classmethod
+        def run(cls):
+            while not cease_continuous_run.is_set():
+                schedule.run_pending()
+                time.sleep(interval)
+    continuous_thread = ScheduleThread()
+    continuous_thread.start()
+    return cease_continuous_run
 
-def get_new_tweets():
+def update_request_data():
+    request_limit = 30
+
+
+def update_graph_tweets():
     try:
-        data = nodes_relationship_queue.get()
-        relationship_queue.put(data)
-        return data
-    except Queue.Empty:
-        logger.info("No new tweets! ")
-        return None
+        global request_limit
+        if request_limit >= 0 and tweet_backlog: 
+            tweet = tweet_backlog.pop()
+            created_at_str = tweet["created_at"]
+            created_at = datetime.fromisoformat(created_at_str)
+            current = datetime.now(timezone.utc)
+            delta = current - created_at
+            if delta.total_seconds() > 120:
+                likes = get_tweet_likes(tweet["t_id"])
+                retweets = get_tweet_retweets(tweet["t_id"])
+                request_limit = request_limit - 1
+                if likes is not None:
+                    for user in likes:
+                        db_participant_node = list(
+                            Match()
+                            .node(labels="Participant", variable="p", id=user.id)
+                            .return_()
+                            .execute()
+                        )
+                        db_tweet_node = list(
+                            Match()
+                            .node(labels="Tweet", variable="t", id=tweet["t_id"])
+                            .return_()
+                            .execute()
+                        )
+                        if len(db_participant_node) and len(db_tweet_node):
+                            p = db_participant_node[0]["p"]
+                            t = db_tweet_node[0]["t"]
+                            Likes(_start_node_id=p._id, _end_node_id=t._id).save(memgraph)
+
+                if retweets is not None:
+                    for user in retweets:
+                        db_participant_node = list(
+                            Match()
+                            .node(labels="Participant", variable="p", id=user.id)
+                            .return_()
+                            .execute()
+                        )
+                        db_tweet_node = list(
+                            Match()
+                            .node(labels="Tweet", variable="t", id=tweet["t_id"])
+                            .return_()
+                            .execute()
+                        )
+                        if len(db_participant_node) and len(db_tweet_node):
+                            p = db_participant_node[0]["p"]
+                            t = db_tweet_node[0]["t"]
+                            Retweeted(_start_node_id=p._id, _end_node_id=t._id).save(
+                                memgraph
+                            )
+            else: 
+                tweet_backlog.append(tweet)
+                
+    except Exception as e:
+        traceback.print_exc()
+        
+
+def schedule_graph_updates():
+    global request_limit
+    request_limit = 35
+    schedule.every(15).minutes.do(update_request_data)
+    schedule.every(1).minutes.do(update_graph_tweets)
 
 
 def init_db_from_twitter():
+
     tweets = get_tweets_history(hashtag)
     save_history(tweets)
     # save_history_following()
     # save_history_likes_retweets(tweets)
+    schedule_graph_updates()
+    global running_thread
+    running_thread = run_continuously()
     init_stream(bearer_token=twitter_client.bearer_token)
 
 
 def close_connections():
+    global running_thread
+    running_thread.join()
     close_stream()
