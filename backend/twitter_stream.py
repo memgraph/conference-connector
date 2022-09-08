@@ -12,7 +12,7 @@ logger.addHandler(handler)
 
 streaming_rule = "(#memgraph OR @Memgraph)"
 
-nodes_relationship_queue = Queue()
+nodes_queue = Queue()
 
 
 class TweetStream(StreamingClient):
@@ -93,9 +93,7 @@ class TweetStream(StreamingClient):
             nodes = [participant, tweet]
             relationships = [tweeted]
 
-            nodes_relationship_queue.put(
-                {"nodes": nodes, "relationships": relationships}
-            )
+            nodes_queue.put(nodes)
 
         except Exception as e:
             traceback.print_exc()

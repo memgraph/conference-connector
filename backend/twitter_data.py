@@ -13,7 +13,7 @@ from gqlalchemy.query_builders.memgraph_query_builder import Operator, Order
 from models import Participant, Tweet, TweetedBy, Retweeted, Likes, Following, memgraph
 from twitter_stream import (
     init_stream,
-    nodes_relationship_queue,
+    nodes_queue,
     close_stream,
 )
 
@@ -508,12 +508,9 @@ def get_participant_nodes_relationships(username: str):
 
 def get_new_tweets():
     try:
-        data = nodes_relationship_queue.get()
-        relationship_queue.put(data)
-        return data
+        data=nodes_queue.get()
     except Queue.Empty:
         logger.info("No new tweets! ")
-        return None
 
 
 def init_db_from_twitter():
