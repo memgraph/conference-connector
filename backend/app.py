@@ -29,6 +29,7 @@ import logging
 import os
 import time
 import json
+import traceback
 
 
 log = logging.getLogger(__name__)
@@ -59,7 +60,6 @@ def init_signups_log():
 
 
 def connect_to_memgraph():
-
     connection_established = False
     while not connection_established:
         try:
@@ -71,6 +71,20 @@ def connect_to_memgraph():
             time.sleep(4)
 
 
+def set_up_memgraph():
+    try: 
+        memgraph.drop_database()
+        memgraph.execute("CALL pagerank_online.set(100, 0.2) YIELD *")
+        memgraph.execute(
+            """CREATE TRIGGER pagerank_trigger 
+                BEFORE COMMIT 
+                EXECUTE CALL pagerank_online.update(createdVertices, createdEdges, deletedVertices, deletedEdges) YIELD *
+                SET node.rank = rank"""
+        )
+    except Exception as e: 
+        traceback.print_exc()
+        
+
 @app.on_event("startup")
 def startup_event():
 
@@ -78,6 +92,7 @@ def startup_event():
     init_twitter_access()
     init_signups_log()
     connect_to_memgraph()
+    set_up_memgraph()
     init_db_from_twitter()
 
 

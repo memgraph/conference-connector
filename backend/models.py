@@ -3,7 +3,6 @@ from gqlalchemy import Node, Field, Relationship, Memgraph
 
 memgraph = Memgraph()
 
-
 class Participant(Node):
     id: int = Field(index=True, exists=True, unique=True, db=memgraph)
     username: str = Field(unique=True)

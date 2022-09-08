@@ -9,7 +9,7 @@ from tweepy import Client, Paginator
 from gqlalchemy import Match, Call
 from fastapi import BackgroundTasks
 from datetime import datetime, timedelta
-from gqlalchemy.query_builders.memgraph_query_builder import Operator
+from gqlalchemy.query_builders.memgraph_query_builder import Operator, Order
 from models import Participant, Tweet, TweetedBy, Retweeted, Likes, Following, memgraph
 from twitter_stream import (
     init_stream,
@@ -232,15 +232,10 @@ def get_participant_followers(id: int):
 def get_ranked_participants():
     try:
         results = list(
-            Call("pagerank.get")
-            .yield_()
-            .with_({"node": "node", "rank": "rank"})
-            .add_custom_cypher("WHERE node:Participant")
-            .return_(
-                {"rank": "rank", "node.name": "fullName", "node.username": "username"}
-            )
-            .order_by("rank DESC")
-            .limit(50)
+            Match()
+            .node(labels="Participant", variable="p")
+            .return_()
+            .order_by(properties=("p.rank", Order.DESC))
             .execute()
         )
         page_rank = list()
@@ -320,6 +315,7 @@ def get_all_nodes_and_relationships():
                             n._properties["username"],
                             n._properties["profile_image"],
                             n._properties["claimed"],
+                            n._properties["rank"]
                         )
                     )
                 if n_label == "Tweet":
@@ -345,8 +341,9 @@ def get_all_nodes_and_relationships():
                 "username": username,
                 "image": image,
                 "claimed": claimed,
+                "rank": rank
             }
-            for id, label, p_id, name, username, image, claimed in participant_nodes
+            for id, label, p_id, name, username, image, claimed, rank in participant_nodes
         ]
 
         tweets = [
@@ -454,6 +451,7 @@ def get_participant_nodes_relationships(username: str):
                             n._properties["username"],
                             n._properties["profile_image"],
                             n._properties["claimed"],
+                            n._properties["rank"]
                         )
                     )
                 if n_label == "Tweet":
@@ -478,8 +476,9 @@ def get_participant_nodes_relationships(username: str):
                 "username": username,
                 "image": image,
                 "claimed": claimed,
+                "rank" : rank
             }
-            for id, label, p_id, name, username, image, claimed in participant_nodes
+            for id, label, p_id, name, username, image, claimed, rank in participant_nodes
         ]
 
         tweets = [
@@ -510,7 +509,7 @@ def get_participant_nodes_relationships(username: str):
 def get_new_tweets():
     try:
         data = nodes_relationship_queue.get()
-        relationship_queue.add(data)
+        relationship_queue.put(data)
         return data
     except Queue.Empty:
         logger.info("No new tweets! ")
@@ -518,7 +517,6 @@ def get_new_tweets():
 
 
 def init_db_from_twitter():
-    memgraph.drop_database()
     tweets = get_tweets_history(hashtag)
     save_history(tweets)
     # save_history_following()
