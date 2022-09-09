@@ -12,7 +12,8 @@ logger.addHandler(handler)
 
 streaming_rule = "(#memgraph OR @Memgraph)"
 
-tweet_backlog = deque()
+tweets_backlog = deque()
+participants_backlog = deque()
 
 
 class TweetStream(StreamingClient):
@@ -90,10 +91,8 @@ class TweetStream(StreamingClient):
                 "label": tweeted_rel._type,
             }
 
-            nodes = [participant, tweet]
-            relationships = [tweeted]
-
-            tweet_backlog.appendleft(tweet)
+            tweets_backlog.appendleft(tweet)
+            participants_backlog.appendleft(participant)
 
         except Exception as e:
             traceback.print_exc()
@@ -128,9 +127,12 @@ stream = TweetStream(bearer_token=None)
 
 def clear_rules():
     rules = stream.get_rules()
-    for rule in rules.data:
-        print(rule.id)
-        stream.delete_rules(rule[2])
+    if rules.data is not None:
+        for rule in rules.data:
+            print(rule.id)
+            stream.delete_rules(rule[2])
+    else:
+        logger.info("No rules to delete!")
 
 
 def rules_init():
