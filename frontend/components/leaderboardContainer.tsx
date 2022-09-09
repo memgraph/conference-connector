@@ -16,6 +16,7 @@ interface Props {
 const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
     const [allData, setAllData] = useState<Array<GraphData>>([]);
     const [filteredData, setFilteredData] = useState(allData);
+    const [result, setResult] = useState<Array<GraphData>>([]);
 
 
     function handleUsernameChange(e: { target: { value: React.SetStateAction<string>; }; }) {
@@ -27,31 +28,40 @@ const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
         setFilteredData(result);
     }
 
-    const fetchLeaderboard = async () => {
-        console.log("fetching leaderboard");
-        const response = await fetch('http://localhost:8000/ranked')
-        if (!response.ok) {
-            console.log("error happened")
-            throw new Error('Data could not be fetched!')
-        } else {
-            return response.json()
+    useEffect(() => {
+        const fetchLeaderboard = async () => {
+            console.log("fetching leaderboard");
+            try {
+                const response = await fetch('http://localhost:8000/ranked')
+                if (!response.ok) {
+                    console.log("error happened")
+                    throw new Error('Data could not be fetched!')
+                } else {
+                    const res = await response.json();
+                    setResult(res.page_rank);
+                }
+            } catch (error) {
+                console.log(error);
+            }
         }
 
-    }
+        const id = setInterval(() => {
+            fetchLeaderboard();
+        }, 30000);
 
-    // renders twice - can be changed in next.js config with reactStrictMode: false
-    useEffect(() => {
-        fetchLeaderboard()
-            .then((res) => {
-                setAllData(res.page_rank);
-                setFilteredData(res.page_rank);
-            })
-            .catch((e) => console.log(e.message));
+        fetchLeaderboard();
 
-        // fetch every 30 seconds
-        setInterval(fetchLeaderboard, 30000);
+        return () => clearInterval(id);
+
     }, []);
 
+
+    if (result !== undefined) {
+        if (result.length != allData.length) {
+            setAllData(result);
+            setFilteredData(result);
+        }
+    }
 
     return (
         <div className={styles.leaderboard}>

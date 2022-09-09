@@ -523,7 +523,7 @@ def init_db_from_twitter():
     save_history(tweets)
     # save_history_following()
     # save_history_likes_retweets(tweets)
-    # init_stream(bearer_token=twitter_client.bearer_token)
+    init_stream(bearer_token=twitter_client.bearer_token)
 
 
 def close_connections():

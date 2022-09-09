@@ -70,6 +70,7 @@ const Home: NextPage = () => {
       <div id="pop-up" className={styles.popUp}>
         <ClaimFormNew></ClaimFormNew>
       </div>
+
       <div className={styles.bodyGrid}>
         <div className={styles.buttonBack} hidden={!isParticipant}>
           <button onClick={goToGraphView}>
