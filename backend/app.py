@@ -159,3 +159,4 @@ async def log_signup(request: Request):
 def shutdown_event():
     close_connections()
 
+

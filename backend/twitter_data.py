@@ -611,6 +611,7 @@ def schedule_graph_updates():
     schedule.every(3).minutes.do(update_graph_participants)
 
 
+
 def init_db_from_twitter():
 
     tweets = get_tweets_history(hashtag)

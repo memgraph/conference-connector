@@ -12,8 +12,10 @@ logger.addHandler(handler)
 
 streaming_rule = "(#memgraph OR @Memgraph)"
 
+
 tweets_backlog = deque()
 participants_backlog = deque()
+
 
 
 class TweetStream(StreamingClient):
@@ -93,6 +95,8 @@ class TweetStream(StreamingClient):
 
             tweets_backlog.appendleft(tweet)
             participants_backlog.appendleft(participant)
+
+
 
         except Exception as e:
             traceback.print_exc()
