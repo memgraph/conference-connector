@@ -1,7 +1,7 @@
 from tweepy import StreamingClient, StreamRule
 from gqlalchemy import Create
 from models import memgraph, Participant, Tweet, TweetedBy
-from queue import Queue
+from collections import deque
 import logging
 import traceback
 
@@ -12,7 +12,10 @@ logger.addHandler(handler)
 
 streaming_rule = "(#memgraph OR @Memgraph)"
 
-nodes_queue = Queue()
+
+tweets_backlog = deque()
+participants_backlog = deque()
+
 
 
 class TweetStream(StreamingClient):
@@ -57,7 +60,7 @@ class TweetStream(StreamingClient):
             participant_node = memgraph.save_node(participant_node)
 
             tweeted_rel = TweetedBy(
-                _start_node_id=participant_node._id, _end_node_id=tweet_node._id
+                _start_node_id=tweet_node._id, _end_node_id=participant_node._id
             )
             tweeted_rel = memgraph.save_relationship(tweeted_rel)
 
@@ -90,10 +93,10 @@ class TweetStream(StreamingClient):
                 "label": tweeted_rel._type,
             }
 
-            nodes = [participant, tweet]
-            relationships = [tweeted]
+            tweets_backlog.appendleft(tweet)
+            participants_backlog.appendleft(participant)
 
-            nodes_queue.put(nodes)
+
 
         except Exception as e:
             traceback.print_exc()
@@ -128,9 +131,12 @@ stream = TweetStream(bearer_token=None)
 
 def clear_rules():
     rules = stream.get_rules()
-    for rule in rules.data:
-        print(rule.id)
-        stream.delete_rules(rule[2])
+    if rules.data is not None:
+        for rule in rules.data:
+            print(rule.id)
+            stream.delete_rules(rule[2])
+    else:
+        logger.info("No rules to delete!")
 
 
 def rules_init():
