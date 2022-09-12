@@ -137,7 +137,7 @@
 
 .rankings {
   height: 60%;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .rankingNumber {
@@ -321,4 +321,29 @@
 .linkedinMobile {
   padding-top: 38.43px;
   text-align: center;
+}
+
+.tweets {
+  padding: 0 15px;
+  height: 250px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  background-color: white;
+}
+
+.tweetContent {
+  overflow-y: auto;
+  height: 40%;
+}
+
+.tweetDescription {
+  color: #857F87;
+}
+
+.tweetText {
+  -webkit-transition: opacity .5s ease-in-out;
+  -moz-transition: opacity .5s ease-in-out;
+  -ms-transition: opacity .5s ease-in-out;
+  -o-transition: opacity .5s ease-in-out;
+  transition: opacity .5s ease-in-out;
 }

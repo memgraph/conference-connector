@@ -3,11 +3,14 @@ import { useEffect, useState } from 'react';
 import styles from '../styles/Home.module.css'
 import LeaderboardMobile from './leaderboardMobile';
 
-
-
+interface GraphData {
+    position: string;
+    fullName: string;
+    username: string;
+}
 
 const LeaderboardContainerMobile = () => {
-    const [allData, setAllData] = useState([{ rank: "1", username: "memgraphdb", fullName: "Memgraph" }, { rank: "2", username: "AnteJavor", fullName: "Ante Javor" }, { rank: "3", username: "supe_katarina", fullName: "Katarina Supe" }, { rank: "4", username: "kgolubic", fullName: "Kruno Golubic" }, { rank: "5", username: "vpavicic", fullName: "Vlasta Pavicic" }]);
+    const [allData, setAllData] = useState<Array<GraphData>>([]);
     const [filteredData, setFilteredData] = useState(allData);
 
 
@@ -21,6 +24,7 @@ const LeaderboardContainerMobile = () => {
     }
 
     const fetchLeaderboard = async () => {
+        console.log("fetching leaderboard mobile");
         const response = await fetch('http://localhost:8000/ranked')
         if (!response.ok) {
             console.log("error happened")
@@ -37,6 +41,9 @@ const LeaderboardContainerMobile = () => {
                 setFilteredData(res.page_rank);
             })
             .catch((e) => console.log(e.message));
+
+        // fetch every 30 seconds
+        setInterval(fetchLeaderboard, 30000);
     }, []);
 
 

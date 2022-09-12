@@ -2,18 +2,18 @@ import { Grid } from "@mui/material";
 import styles from '../styles/Home.module.css'
 
 interface Props {
-    rank: string,
+    position: string,
     fullName: string,
     username: string,
 }
 
-const LeaderboardCardMobile: React.FC<Props> = ({ rank, fullName, username }) => {
+const LeaderboardCardMobile: React.FC<Props> = ({ position, fullName, username }) => {
 
     return (
         <Grid item sm={12} xs={12}>
             <div className={styles.leaderboardCard}>
                 <div className={styles.rankingNumber}>
-                    {rank}
+                    {position}
                 </div>
                 <Grid container>
                     <Grid item sm={12} xs={12}>

@@ -19,7 +19,20 @@ const Home: NextPage = () => {
   const [key, setKey] = useState("");
   const [isParticipant, setIsParticipant] = useState(false);
 
+  function cleanTweet() {
+    let tweetText = document.getElementById("tweet-text")!;
+    //fade out
+    tweetText.style.opacity = "0";
+    //wait for the transition
+    setTimeout(function () {
+      tweetText.innerHTML = "";
+      //fade in
+      tweetText.style.opacity = "1";
+    }, 500);
+  }
+
   function goToGraphView() {
+    cleanTweet();
     setIsParticipant(false);
   }
 
@@ -57,6 +70,7 @@ const Home: NextPage = () => {
       <div id="pop-up" className={styles.popUp}>
         <ClaimFormNew></ClaimFormNew>
       </div>
+
       <div className={styles.bodyGrid}>
         <div className={styles.buttonBack} hidden={!isParticipant}>
           <button onClick={goToGraphView}>
@@ -78,10 +92,15 @@ const Home: NextPage = () => {
                   <LeaderboardContainer handleGraphUpdate={handleGraphUpdate}></LeaderboardContainer>
                 </div>
               </Grid>
-              {/* <Grid item sm={12} xs={12}>
-                <div style={{ backgroundColor: "#E6E6E6", height: "219px" }}>
+              <Grid item sm={12} xs={12}>
+                <div className={styles.tweets}>
+                  <h2>Tweet</h2>
+                  <p className={styles.tweetDescription}>Click on tweet and check its content</p>
+                  <div id="current-tweet" className={styles.tweetContent}>
+                    <div id="tweet-text" className={styles.tweetText}></div>
+                  </div>
                 </div>
-              </Grid>  */}
+              </Grid>
             </Grid>
           </Grid>
         </Grid>

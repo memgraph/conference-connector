@@ -4,13 +4,20 @@ import styles from '../styles/Home.module.css'
 import Leaderboard from './leaderboard';
 
 
+interface GraphData {
+    position: string;
+    fullName: string;
+    username: string;
+}
+
 interface Props {
     handleGraphUpdate: any,
 }
 
 const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
-    const [allData, setAllData] = useState([{ rank: "1", username: "memgraphdb", fullName: "Memgraph" }, { rank: "2", username: "AnteJavor", fullName: "Ante Javor" }, { rank: "3", username: "supe_katarina", fullName: "Katarina Supe" }, { rank: "4", username: "kgolubic", fullName: "Kruno Golubic" }, { rank: "5", username: "vpavicic", fullName: "Vlasta Pavicic" }]);
+    const [allData, setAllData] = useState<Array<GraphData>>([]);
     const [filteredData, setFilteredData] = useState(allData);
+    const [result, setResult] = useState<Array<GraphData>>([]);
 
 
     function handleUsernameChange(e: { target: { value: React.SetStateAction<string>; }; }) {
@@ -22,26 +29,40 @@ const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
         setFilteredData(result);
     }
 
-    const fetchLeaderboard = async () => {
-        const response = await fetch('http://localhost:8000/ranked')
-        if (!response.ok) {
-            console.log("error happened")
-            throw new Error('Data could not be fetched!')
-        } else {
-            return response.json()
-        }
-    }
-
-
     useEffect(() => {
-        fetchLeaderboard()
-            .then((res) => {
-                setAllData(res.page_rank);
-                setFilteredData(res.page_rank);
-            })
-            .catch((e) => console.log(e.message));
+        const fetchLeaderboard = async () => {
+            console.log("fetching leaderboard");
+            try {
+                const response = await fetch('http://localhost:8000/ranked')
+                if (!response.ok) {
+                    console.log("error happened")
+                    throw new Error('Data could not be fetched!')
+                } else {
+                    const res = await response.json();
+                    setResult(res.page_rank);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        const id = setInterval(() => {
+            fetchLeaderboard();
+        }, 30000);
+
+        fetchLeaderboard();
+
+        return () => clearInterval(id);
+
     }, []);
 
+
+    if (result !== undefined) {
+        if (result.length != allData.length) {
+            setAllData(result);
+            setFilteredData(result);
+        }
+    }
 
     return (
         <div className={styles.leaderboard}>

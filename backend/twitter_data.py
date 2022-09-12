@@ -109,10 +109,7 @@ def save_history(tweets):
 def add_history_to_backlog():
 
     participants_results = list(
-        Match()
-        .node(labels="Participant", variable="p")
-        .return_()
-        .execute()
+        Match().node(labels="Participant", variable="p").return_().execute()
     )
 
     for p in participants_results:
@@ -130,10 +127,7 @@ def add_history_to_backlog():
         participants_backlog.appendleft(participant)
 
     tweets_results = list(
-        Match()
-        .node(labels="Tweet", variable="t")
-        .return_()
-        .execute()
+        Match().node(labels="Tweet", variable="t").return_().execute()
     )
 
     for t in tweets_results:
@@ -204,14 +198,17 @@ def get_ranked_participants():
             .execute()
         )
         page_rank = list()
+        position = 0
         for result in results:
+            position += 1
             participant = result["p"]
-            page_rank.append({
-                "rank": participant._properties["rank"],
-                "name": participant._properties["name"],
-                "username": participant._properties["username"]
-            })
-
+            page_rank.append(
+                {
+                    "position": str(position),
+                    "fullName": participant._properties["name"],
+                    "username": participant._properties["username"],
+                }
+            )
         response = {"page_rank": page_rank}
         return response
     except Exception as e:
@@ -286,7 +283,7 @@ def get_all_nodes_and_relationships():
                             n._properties["username"],
                             n._properties["profile_image"],
                             n._properties["claimed"],
-                            n._properties["rank"]
+                            n._properties["rank"],
                         )
                     )
                 if n_label == "Tweet":
@@ -301,8 +298,7 @@ def get_all_nodes_and_relationships():
                     )
 
             r = result["r"]
-            relationships.add(
-                (r._id, r._start_node_id, r._end_node_id, r._type))
+            relationships.add((r._id, r._start_node_id, r._end_node_id, r._type))
 
         participants = [
             {
@@ -313,7 +309,7 @@ def get_all_nodes_and_relationships():
                 "username": username,
                 "image": image,
                 "claimed": claimed,
-                "rank": rank
+                "rank": rank,
             }
             for id, label, p_id, name, username, image, claimed, rank in participant_nodes
         ]
@@ -423,7 +419,7 @@ def get_participant_nodes_relationships(username: str):
                             n._properties["username"],
                             n._properties["profile_image"],
                             n._properties["claimed"],
-                            n._properties["rank"]
+                            n._properties["rank"],
                         )
                     )
                 if n_label == "Tweet":
@@ -437,8 +433,7 @@ def get_participant_nodes_relationships(username: str):
                         )
                     )
             r = result["r"]
-            relationships.add(
-                (r._id, r._start_node_id, r._end_node_id, r._type))
+            relationships.add((r._id, r._start_node_id, r._end_node_id, r._type))
 
         participants = [
             {
@@ -449,7 +444,7 @@ def get_participant_nodes_relationships(username: str):
                 "username": username,
                 "image": image,
                 "claimed": claimed,
-                "rank": rank
+                "rank": rank,
             }
             for id, label, p_id, name, username, image, claimed, rank in participant_nodes
         ]
@@ -488,6 +483,7 @@ def run_continuously(interval=1):
             while not cease_continuous_run.is_set():
                 schedule.run_pending()
                 time.sleep(interval)
+
     continuous_thread = ScheduleThread()
     continuous_thread.start()
     return cease_continuous_run
@@ -510,7 +506,7 @@ def update_graph_tweets():
         created_at = datetime.fromisoformat(created_at_str)
         current = datetime.now(timezone.utc)
         delta = current - created_at
-        hours = delta.total_seconds() / (60*60)
+        hours = delta.total_seconds() / (60 * 60)
         if delta.total_seconds() > 180:
             try:
                 logger.info(tweet)
@@ -555,8 +551,7 @@ def update_graph_tweets():
                         if len(db_participant_node) and len(db_tweet_node):
                             p = db_participant_node[0]["p"]
                             t = db_tweet_node[0]["t"]
-                            r = Retweeted(_start_node_id=p._id,
-                                          _end_node_id=t._id)
+                            r = Retweeted(_start_node_id=p._id, _end_node_id=t._id)
                             memgraph.save_relationship(r)
             except Exception as e:
                 traceback.print_exc()
@@ -609,7 +604,6 @@ def schedule_graph_updates():
     schedule.every(15).minutes.do(update_request_data)
     schedule.every(3).minutes.do(update_graph_tweets)
     schedule.every(3).minutes.do(update_graph_participants)
-
 
 
 def init_db_from_twitter():
