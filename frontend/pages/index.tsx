@@ -3,12 +3,11 @@ import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 import Footer from '../components/footer'
 import { Grid } from '@mui/material'
-import io, { Socket } from 'socket.io-client'
 import { useEffect, useState } from 'react'
 import MainGraph from '../components/mainGraph'
 import Graph from '../components/graph'
 import JoinGraph from '../components/joinGraph'
-import ClaimFormNew from '../components/claimForm'
+import ClaimForm from '../components/claimForm'
 import LeaderboardContainer from '../components/leaderboardContainer'
 
 //let socket: Socket<DefaultEventsMap, DefaultEventsMap>;
@@ -68,7 +67,7 @@ const Home: NextPage = () => {
       <div id="pop-up-background" className={styles.popUpBackground}>
       </div>
       <div id="pop-up" className={styles.popUp}>
-        <ClaimFormNew></ClaimFormNew>
+        <ClaimForm></ClaimForm>
       </div>
 
       <div className={styles.bodyGrid}>

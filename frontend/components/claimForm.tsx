@@ -4,8 +4,6 @@ import styles from '../styles/Home.module.css'
 import * as EmailValidator from 'email-validator';
 
 
-
-
 export default function ClaimForm() {
     const [username, setUsername] = useState("");
     const [name, setName] = useState("");
