@@ -23,12 +23,14 @@ interface MyEdge {
 
 interface Props {
     nodes: MyNode[],
-    edges: MyEdge[]
+    edges: MyEdge[],
+    isUserView: boolean,
 }
 
 const Graph: React.FC<Props> = ({
     nodes,
-    edges
+    edges,
+    isUserView,
 }) => {
 
     const container = useRef<HTMLElement>();
@@ -40,21 +42,18 @@ const Graph: React.FC<Props> = ({
     }, []);
 
     useEffect(() => {
+        console.log("hej hej ja sam graf")
         if (orb.current != null) {
             let participants = nodes.filter((node) => node.label === "Participant");
             let participantsLength = participants.length;
-            let isUserView = false;
 
-            if (participantsLength !== 1) {
+            if (!isUserView) {
                 participants.sort(function (a, b) {
                     return b.rank - a.rank
                 });
 
                 var minRank = participants[participantsLength - 1].rank;
                 var maxRank = participants[0].rank;
-            }
-            else {
-                isUserView = true;
             }
 
             // if zoomed in, merging is not smooth
@@ -71,7 +70,7 @@ const Graph: React.FC<Props> = ({
                 });
             orb.current.data
                 .getEdges()
-                .filter((edge) => edge.getLabel() === "TWEETED_BY")
+                .filter((edge) => ["TWEETED_BY", "FOLLOWING", "RETWEETED", "LIKES"].includes(edge.getLabel()!))
                 .forEach((edge) => {
                     edge.properties.fontSize = 2;
                 })
@@ -82,7 +81,7 @@ const Graph: React.FC<Props> = ({
                     node.properties.label = node.data.username;
                     node.properties.color = node.data.claimed ? '#FB6E00' : '#BAB8BB';
 
-                    node.properties.size = isUserView ? 7 : Math.sqrt(((node.data.rank - minRank) / (maxRank - minRank)) * 1000) + 2;
+                    node.properties.size = isUserView ? 7 : Math.sqrt(((node.data.rank - minRank) / (maxRank - minRank)) * 500) + 2;
 
                     node.properties.fontSize = 3;
                 });

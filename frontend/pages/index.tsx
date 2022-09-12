@@ -17,6 +17,7 @@ const Home: NextPage = () => {
   const [edges, setEdges] = useState([]);
   const [key, setKey] = useState("");
   const [isParticipant, setIsParticipant] = useState(false);
+  const [claimedUsername, setClaimedUsername] = useState("");
 
   function cleanTweet() {
     let tweetText = document.getElementById("tweet-text")!;
@@ -45,6 +46,10 @@ const Home: NextPage = () => {
     setEdges(newEdges);
     setKey(updatedUsername);
     setIsParticipant(true);
+  }
+
+  function handleClaim(username: string) {
+    setClaimedUsername(username);
   }
 
   // useEffect(() => {
@@ -79,7 +84,7 @@ const Home: NextPage = () => {
         <Grid container spacing={2}>
           <Grid item sm={9} xs={12}>
             {isParticipant
-              ? <Graph key={key} nodes={nodes} edges={edges}></Graph>
+              ? <Graph key={key} nodes={nodes} edges={edges} isUserView={true}></Graph>
               : <MainGraph></MainGraph>
             }
           </Grid>

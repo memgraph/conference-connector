@@ -29,11 +29,13 @@ interface Result {
 }
 
 
+
 const MainGraph = () => {
     const [nodes, setNodes] = useState<MyNode[]>([]);
     const [edges, setEdges] = useState<MyEdge[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const [result, setResult] = useState<Result>();
+
 
 
     useEffect(() => {
@@ -72,6 +74,8 @@ const MainGraph = () => {
         );
     }
     else {
+
+        // set nodes when there is a new claim
         if (result.nodes.length != nodes.length) {
             setNodes(result.nodes);
         }
@@ -80,7 +84,7 @@ const MainGraph = () => {
         }
         // what if the claim has been changed?
         return (
-            <Graph nodes={nodes} edges={edges}></Graph>
+            <Graph nodes={nodes} edges={edges} isUserView={false}></Graph>
         );
     }
 }

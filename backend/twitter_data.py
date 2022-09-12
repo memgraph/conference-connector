@@ -192,7 +192,7 @@ def get_ranked_participants():
         results = list(
             Match()
             .node(labels="Participant", variable="p")
-            .where(item="p.claimed", operator=Operator.EQUAL, expression="False")
+            .where(item="p.claimed", operator=Operator.EQUAL, expression="True")
             .return_()
             .order_by(properties=("p.rank", Order.DESC))
             .execute()
