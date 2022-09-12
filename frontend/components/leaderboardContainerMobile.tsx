@@ -4,6 +4,7 @@ import styles from '../styles/Home.module.css'
 import LeaderboardMobile from './leaderboardMobile';
 
 interface GraphData {
+    position: string;
     fullName: string;
     username: string;
 }

@@ -4,13 +4,13 @@ import styles from '../styles/Home.module.css'
 import Graph from "./graph";
 
 interface Props {
-    rank: string,
+    position: string,
     fullName: string,
     username: string,
     handleGraphUpdate: any
 }
 
-const LeaderboardCard: React.FC<Props> = ({ rank, fullName, username, handleGraphUpdate }) => {
+const LeaderboardCard: React.FC<Props> = ({ position, fullName, username, handleGraphUpdate }) => {
     const fetchParticipant = async (username: string) => {
         console.log("USERNAME: %s", username);
         const response = await fetch('http://localhost:8000/user/' + username)
@@ -56,7 +56,7 @@ const LeaderboardCard: React.FC<Props> = ({ rank, fullName, username, handleGrap
         <Grid item sm={12} xs={12}>
             <div className={styles.leaderboardCard}>
                 <div className={styles.rankingNumber}>
-                    {rank}
+                    {position}
                 </div>
                 <Grid container>
                     <Grid item sm={12} xs={12}>

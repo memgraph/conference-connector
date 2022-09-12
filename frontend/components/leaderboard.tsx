@@ -9,10 +9,10 @@ interface Props {
 const Leaderboard: React.FC<Props> = ({ data, handleGraphUpdate }) => {
     return (<div style={{ width: "95%" }}>
         {
-            data.map((value: { rank: string; fullName: string; username: string; }, index: any) => {
+            data.map((value: { position: string; fullName: string; username: string; }, index: any) => {
                 return (
                     <div key={index} className={styles.leaderboardGrid}>
-                        <LeaderboardCard key={index} rank={String(index + 1)} fullName={value.fullName} username={value.username} handleGraphUpdate={handleGraphUpdate}></LeaderboardCard>
+                        <LeaderboardCard key={index} position={value.position} fullName={value.fullName} username={value.username} handleGraphUpdate={handleGraphUpdate}></LeaderboardCard>
                     </div>
                 );
             })

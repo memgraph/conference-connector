@@ -5,6 +5,7 @@ import Leaderboard from './leaderboard';
 
 
 interface GraphData {
+    position: string;
     fullName: string;
     username: string;
 }

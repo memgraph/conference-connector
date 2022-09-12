@@ -239,10 +239,13 @@ def get_ranked_participants():
             .execute()
         )
         page_rank = list()
+        position = 0
         for result in results:
+            position += 1
             participant = result["p"]
             page_rank.append(
                 {
+                    "position": str(position),
                     "fullName": participant._properties["name"],
                     "username": participant._properties["username"],
                 }
