@@ -21,7 +21,6 @@ from twitter_data import (
     log_participant,
     save_and_claim,
     get_participant_nodes_relationships,
-    get_new_tweets,
     close_connections,
     get_ranked_participants,
 )
@@ -87,7 +86,6 @@ def set_up_memgraph():
 
 @app.on_event("startup")
 def startup_event():
-
     init_log()
     init_twitter_access()
     init_signups_log()
@@ -155,3 +153,10 @@ async def log_signup(request: Request):
                 status_code=404,
                 detail=f"User with username {username} does not exist on Twitter.",
             )
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    close_connections()
+
+

@@ -18,7 +18,7 @@ services:
     build: ./backend
     volumes:
       - ./backend:/app
-    command: uvicorn app:app --reload --host 0.0.0.0 
+    command: uvicorn app:app --host 0.0.0.0  --reload
     ports:
       - 8000:8000
     depends_on:
