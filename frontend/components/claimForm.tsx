@@ -1,7 +1,7 @@
 import { Grid } from "@mui/material";
 import { useState } from "react";
 import styles from '../styles/Home.module.css'
-
+import * as EmailValidator from 'email-validator';
 
 
 
@@ -58,7 +58,7 @@ export default function ClaimForm() {
         const val = e.target.value;
         let emailInput = document.getElementById("email")!;
 
-        if (validator.validate(val)) {
+        if (EmailValidator.validate(String(val))) {
             setIsEmailValid(true);
             emailInput.style.borderColor = "green";
         } else {
@@ -126,7 +126,6 @@ export default function ClaimForm() {
 
     };
 
-    var validator = require('email-validator');
     return (
         <div>
             <div className={styles.formLogoImage}>
