@@ -16,7 +16,7 @@ function Footer() {
                 </Grid>
                 <Grid item xs={12} sm={4}>
                     <div className={styles.description}>
-                        Tweet @BigData_LDN & use #BigDataLDN
+                        Tweet @BigData_LDN or use #BigDataLDN
                     </div>
                 </Grid>
                 <Grid item xs={12} sm={4}>
