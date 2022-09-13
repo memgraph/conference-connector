@@ -347,3 +347,19 @@
   -o-transition: opacity .5s ease-in-out;
   transition: opacity .5s ease-in-out;
 }
+
+.mobileTable {
+  height: 20vh;
+  background: linear-gradient(45deg, #FFC500, #FB6E00, #DD2222, #FF0092, #720096);
+  display: table;
+  width: 100%;
+}
+
+.mobileHeader {
+  display: table-cell;
+  vertical-align: middle;
+  padding-left: 20px;
+  padding-right: 20px;
+  overflow: hidden;
+  color: white;
+}

@@ -12,6 +12,11 @@ const Signup = () => {
 
     return (
         <div>
+            <div className={styles.mobileTable}>
+                <div className={styles.mobileHeader}>
+                    <h2>Mention @BigData_LDN or use #BigDataLDN, join the graph and win the prize!</h2>
+                </div>
+            </div>
             <ClaimFormMobile></ClaimFormMobile>
             <LeaderboardContainerMobile></LeaderboardContainerMobile>
             <FooterMobile></FooterMobile>

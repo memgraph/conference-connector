@@ -32,15 +32,17 @@ export default function ClaimForm() {
     const handleUsernameChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
         let username = String(e.target.value);
         let usernameInput = document.getElementById("username")!;
+        const reg = new RegExp(/^[A-Za-z0-9\_]+$/);
 
-        if (username !== "") {
-            setIsUsernameValid(true);
-            usernameInput.style.borderColor = "green";
-        }
-        else {
+        if (!reg.test(username) || username.length > 15) {
             setIsUsernameValid(false);
             usernameInput.style.borderColor = "red";
         }
+        else {
+            setIsUsernameValid(true);
+            usernameInput.style.borderColor = "green";
+        }
+
         setUsername(username);
     };
 

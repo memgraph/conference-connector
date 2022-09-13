@@ -42,7 +42,6 @@ const Graph: React.FC<Props> = ({
     }, []);
 
     useEffect(() => {
-        console.log("hej hej ja sam graf")
         if (orb.current != null) {
             let participants = nodes.filter((node) => node.label === "Participant");
             let participantsLength = participants.length;
