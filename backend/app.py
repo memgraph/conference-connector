@@ -13,7 +13,7 @@ from gqlalchemy import Match, Call
 from models import memgraph
 from twitter_data import (
     init_db_from_twitter,
-    init_twitter_access,
+    init_twitter_env,
     get_all_nodes_and_relationships,
     get_participant_by_username,
     whitelist_participant,
@@ -24,15 +24,16 @@ from twitter_data import (
     close_connections,
     get_ranked_participants,
 )
-import logging
+from os.path import exists
+import logging.config
 import os
 import time
 import json
 import traceback
 
-
+logging.config.fileConfig('./logging.ini', disable_existing_loggers=False)
 log = logging.getLogger(__name__)
-users_log = logging.getLogger("users_log")
+
 app = FastAPI()
 origins = [
     "http://localhost:3000",
@@ -46,33 +47,34 @@ app.add_middleware(
 )
 
 
-def init_log():
-    logging.basicConfig(level=logging.DEBUG)
-    log.info("Logging enabled")
-
-
 def init_signups_log():
-    with open("signups.csv", "a", newline="") as file:
-        file.truncate()
-        file.write("username,name,email\n")
-    file.close()
+    log.info("Setting up signups file!")
+    path = exists("./signups.csv")
+    if path: 
+        pass          
+    else:
+        with open("./signups.csv", "a", newline="") as file:
+            file.write("username,name,email\n")
+        file.close()
 
 
 def connect_to_memgraph():
+    log.info("Connecting to Memgraph!")
     connection_established = False
     while not connection_established:
         try:
             if memgraph._get_cached_connection().is_active():
                 connection_established = True
                 log.info("Connected to memgraph.")
-        except:
+        except Exception as e :
             log.info("Memgraph probably isn't running.")
-            time.sleep(4)
+            log.error(e, exc_info=True)
+            time.sleep(5)
 
 
 def set_up_memgraph():
+    log.info("Setting up trigger!")
     try: 
-        memgraph.drop_database()
         memgraph.execute("CALL pagerank_online.set(100, 0.2) YIELD *")
         memgraph.execute(
             """CREATE TRIGGER pagerank_trigger 
@@ -81,13 +83,13 @@ def set_up_memgraph():
                 SET node.rank = rank"""
         )
     except Exception as e: 
-        traceback.print_exc()
+        log.info("Trigger probably set previously!")
+        log.error(e, exc_info=True)
         
 
 @app.on_event("startup")
 def startup_event():
-    init_log()
-    init_twitter_access()
+    init_twitter_env()
     init_signups_log()
     connect_to_memgraph()
     set_up_memgraph()
@@ -135,7 +137,7 @@ async def log_signup(request: Request):
     username = user_json["username"]
     name = user_json["name"]
     email = user_json["email"]
-    log.info("Twitter handle:", username)
+    log.info("Twitter handle: " +  username)
 
     log_participant(username, name, email)
 

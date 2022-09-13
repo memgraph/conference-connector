@@ -5,29 +5,23 @@ from collections import deque
 import logging
 import traceback
 
-logger = logging.getLogger("tweepy")
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename="twitter_stream.log")
-logger.addHandler(handler)
-
-streaming_rule = "(#memgraph OR @Memgraph)"
-
+logging.config.fileConfig('./logging.ini', disable_existing_loggers=False)
+log = logging.getLogger(__name__)
 
 tweets_backlog = deque()
 participants_backlog = deque()
 
 
-
 class TweetStream(StreamingClient):
     def on_connect(self):
-        logger.info("Connected")
+        log.info("Connected to stream.")
 
     def on_tweet(self, tweet):
-        logger.info("Tweet event")
+        log.info("New tweet event.")
 
     def on_response(self, response):
+        log.info("Handling tweet event response.")
         try:
-            # TODO: Check way are there two authors? Co-authors maybe?
             tweet_data = {}
             tweet = response.data
             users = {u["id"]: u for u in response.includes["users"]}
@@ -42,8 +36,7 @@ class TweetStream(StreamingClient):
                     "participant_username": user.username,
                     "participant_image": user.profile_image_url,
                 }
-
-            # TODO: Make it to use query builder not OGM
+            log.info(tweet_data)
             tweet_node = Tweet(
                 id=tweet_data["id"],
                 text=tweet_data["text"],
@@ -63,10 +56,6 @@ class TweetStream(StreamingClient):
                 _start_node_id=tweet_node._id, _end_node_id=participant_node._id
             )
             tweeted_rel = memgraph.save_relationship(tweeted_rel)
-
-            logger.info(participant_node)
-            logger.info(tweeted_rel)
-            logger.info(tweet_node)
 
             participant = {
                 "id": participant_node._id,
@@ -96,33 +85,31 @@ class TweetStream(StreamingClient):
             tweets_backlog.appendleft(tweet)
             participants_backlog.appendleft(participant)
 
-
-
         except Exception as e:
-            traceback.print_exc()
+            log.error(e, exc_info=True)
 
     def on_disconnect(self):
-        logger.info("on_disconnect")
+        log.info("on_disconnect")
         pass
 
     def on_errors(self, errors):
-        logger.info("on_errors")
+        log.info("on_errors")
         pass
 
     def on_exception(self, exception):
-        logger.info("on_exception")
+        log.info("on_exception")
         pass
 
     def on_connection_error(self):
-        logger.info("on_connection_error")
+        log.info("on_connection_error")
         pass
 
     def on_request_error(self, status_code):
-        logger.info("on_request_error")
+        log.info("on_request_error")
         pass
 
     def on_keep_alive(self):
-        logger.info("on_keep_alive")
+        log.info("on_keep_alive")
         pass
 
 
@@ -130,31 +117,32 @@ stream = TweetStream(bearer_token=None)
 
 
 def clear_rules():
+    log.info("Clearing all the rules.")
     rules = stream.get_rules()
     if rules.data is not None:
         for rule in rules.data:
-            print(rule.id)
             stream.delete_rules(rule[2])
     else:
-        logger.info("No rules to delete!")
+        log.info("No rules to delete!")
 
 
-def rules_init():
+def rules_init(twitter_rule: str):
     rules = stream.get_rules()
     if rules.data == None:
-        logger.info("Setting streaming rules")
-        rule = StreamRule(streaming_rule + " -is:retweet")
+        log.info("Setting streaming rules.")
+        rule = StreamRule(twitter_rule)
         stream.add_rules(rule)
+        log.info(rule)
     else:
-        logger.info("Following rules set: ")
+        log.info("Following rules set: ")
         for rule in rules.data:
-            logger.info(rule)
+            log.info(rule)
 
 
-def init_stream(bearer_token: str):
+def init_stream(bearer_token: str, twitter_rule: str):
     stream.bearer_token = bearer_token
     clear_rules()
-    rules_init()
+    rules_init(twitter_rule)
 
     stream.filter(
         threaded=True,
