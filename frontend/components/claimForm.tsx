@@ -87,7 +87,7 @@ const ClaimForm = () => {
     };
 
     const sendSignupData = async (userData: any) => {
-        const response = await fetch("http://localhost:8000/api/signup", {
+        const response = await fetch("https://conconnector.memgraph.com/api/signup", {
             method: 'POST',
             mode: 'cors',
             body: JSON.stringify(userData)

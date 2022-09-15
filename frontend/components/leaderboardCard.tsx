@@ -13,7 +13,7 @@ interface Props {
 const LeaderboardCard: React.FC<Props> = ({ position, fullName, username, handleGraphUpdate }) => {
     const fetchParticipant = async (username: string) => {
         console.log("USERNAME: %s", username);
-        const response = await fetch('http://localhost:8000/api/user/' + username)
+        const response = await fetch('https://conconnector.memgraph.com/api/user/' + username)
         if (!response.ok) {
             console.log("error happened")
             throw new Error('Data could not be fetched!')
@@ -72,7 +72,7 @@ const LeaderboardCard: React.FC<Props> = ({ position, fullName, username, handle
                 </Grid>
                 <div className={styles.cardArrow}>
                     <button className={styles.buttonArrow} onClick={handleClick}>
-                        <img src="/home/arrow-right.svg"></img>
+                        <img src="/home/arrow-right.svg" alt='Arrow right'></img>
                     </button>
                 </div>
             </div>

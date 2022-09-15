@@ -1,5 +1,5 @@
 import { Grid } from '@mui/material';
-import styles from '../styles/Footer.module.css'
+import styles from '../styles/Footer.module.css';
 
 
 
