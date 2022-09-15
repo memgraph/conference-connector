@@ -46,7 +46,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 def init_signups_log():
     log.info("Setting up signups file!")
     path = exists("./signups.csv")
@@ -96,12 +95,12 @@ def startup_event():
     init_db_from_twitter()
 
 
-@app.get("/")
+@app.get("/api")
 def read_root():
     return {"Hello": "World"}
 
 
-@app.get("/graph")
+@app.get("/api/graph")
 async def get_graph():
     try:
         return get_all_nodes_and_relationships()
@@ -109,7 +108,7 @@ async def get_graph():
         raise HTTPException(status_code=500, detail="Issue with getting the graph.")
 
 
-@app.get("/user/{username}")
+@app.get("/api/user/{username}")
 async def get_participant_subgraph(username: str):
     try:
         return get_participant_nodes_relationships(username)
@@ -119,7 +118,7 @@ async def get_participant_subgraph(username: str):
         )
 
 
-@app.get("/ranked")
+@app.get("/api/ranked")
 async def get_best_ranked():
     try:
         return get_ranked_participants()
@@ -129,7 +128,7 @@ async def get_best_ranked():
         )
 
 
-@app.post("/signup")
+@app.post("/api/signup")
 async def log_signup(request: Request):
     user = await request.body()
 

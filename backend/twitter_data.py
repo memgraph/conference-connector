@@ -501,7 +501,7 @@ def update_request_limit_data():
     global limit_following
     limit_likes_retweets = 35
     limit_following = 7
-    log.info("Status, likes and retweets limit: ", limit_likes_retweets, " following limit: ", limit_following)
+    log.info("Status, likes and retweets limit: " + str(limit_likes_retweets) + " following limit:" + str(limit_following))
 
 
 def update_graph_tweets():
@@ -541,7 +541,11 @@ def update_graph_tweets():
                             p = db_participant_node[0]["p"]
                             t = db_tweet_node[0]["t"]
                             l = Likes(_start_node_id=p._id, _end_node_id=t._id)
-                            memgraph.save_relationship(l)
+                            try:
+                                likes = l.load(memgraph)
+                                pass
+                            except:
+                                memgraph.save_relationship(l)
 
                 if retweets is not None:
                     for user in retweets:
@@ -561,7 +565,11 @@ def update_graph_tweets():
                             p = db_participant_node[0]["p"]
                             t = db_tweet_node[0]["t"]
                             r = Retweeted(_start_node_id=p._id, _end_node_id=t._id)
-                            memgraph.save_relationship(r)
+                            try:
+                                retweeted = r.load(memgraph)
+                                pass
+                            except:
+                                memgraph.save_relationship(r)
             except Exception as e:
                 log.error(e, exc_info=True)
                 tweets_backlog.append(tweet)
@@ -597,7 +605,11 @@ def update_graph_participants():
                             _start_node_id=par_dic[follower.id]["id"],
                             _end_node_id=new_participant["id"],
                         )
-                        memgraph.save_relationship(f)
+                        try:
+                            following = f.load(memgraph)
+                            pass
+                        except:
+                            memgraph.save_relationship(f)
         except TooManyRequests as te:
             log.info("Too much request for followers!")
             participants_backlog.append(new_participant)
