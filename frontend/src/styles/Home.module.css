@@ -88,7 +88,7 @@
 }
 
 .leaderboard {
-  padding: 0 15px;
+  padding: 10px 15px;
   height: 395px;
   box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
@@ -103,7 +103,7 @@
 
 .searchLeaderboard input {
   /* background-image: '/home/search-icon.svg'; */
-  width: 100%;
+  width: 90%;
   height: 37px;
   padding: 9px, 120px, 8px, 13px;
   color: #231F20;
@@ -248,7 +248,7 @@
 }
 
 .claimForm {
-  padding: 70px 60px 40px 80px;
+  padding: 70px 90px 40px 80px;
 }
 
 .claimInput input {
@@ -324,7 +324,7 @@
 }
 
 .tweets {
-  padding: 0 15px;
+  padding: 10px 15px;
   height: 250px;
   box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
