@@ -78,7 +78,7 @@ export default function ClaimForm() {
     };
 
     const sendSignupData = async (userData: any) => {
-        const response = await fetch("http://localhost:8000/signup", {
+        const response = await fetch("http://localhost:8000/api/signup", {
             method: 'POST',
             mode: 'cors',
             body: JSON.stringify(userData)
