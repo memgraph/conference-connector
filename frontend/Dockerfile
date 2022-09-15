@@ -1,8 +1,20 @@
-FROM node:alpine
-WORKDIR /app
+# pull official base image
+FROM node:16.14.2
+
+# set working directory
+WORKDIR /frontend
+
+# add `/app/node_modules/.bin` to $PATH
+ENV PATH /frontend/node_modules/.bin:$PATH
+
+# install app dependencies
 COPY package.json ./
 COPY package-lock.json ./
-COPY ./ ./
-RUN npm i
-EXPOSE 3000
-CMD ["npm", "run", "dev"]
+RUN npm install --silent
+RUN npm install react-scripts@3.4.1 -g --silent
+
+# add app
+COPY . ./
+
+# start app
+CMD ["npm", "start"]
