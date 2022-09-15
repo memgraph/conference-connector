@@ -220,7 +220,7 @@ def save_participant(participant):
         id=participant["id"],
         name=participant["name"],
         username=participant["username"],
-        profile_image="None",
+        profile_image=participant["profile_image"],
         claimed=False,
     ).save(memgraph)
 
@@ -230,7 +230,7 @@ def save_and_claim(participant):
         id=participant["id"],
         name=participant["name"],
         username=participant["username"],
-        profile_image="None",
+        profile_image=participant["profile_image"],
         claimed=True,
     )
     memgraph.save_node(participant)
@@ -386,7 +386,7 @@ def log_participant(username: str, email: str, name: str):
         email (str): Participant's email
         name (str): Participant's full name
     """
-    log.info("New signup: ", username, "email is: ", email, "full name is: ", name )
+    log.info("New signup: " + username + "email is: " + email + "full name is: "+ name )
     with open("./signups.csv", "a", newline="") as file:
         file.write(username + "," + name + "," + email + "\n")
     file.close()
