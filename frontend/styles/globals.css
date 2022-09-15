@@ -69,17 +69,6 @@ a {
   box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: light) {
-  html {
-    color-scheme: light;
-  }
-
-  body {
-    color: white;
-    background: black;
-  }
-}
-
 
 #__next {
   height: 100%;
