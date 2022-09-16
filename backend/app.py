@@ -35,13 +35,10 @@ logging.config.fileConfig("./logging.ini", disable_existing_loggers=False)
 log = logging.getLogger(__name__)
 
 app = FastAPI()
-origins = [
-    "https://conconnector.memgraph.com/",
-    "https://conconnector.memgraph.com/api/",
-]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
