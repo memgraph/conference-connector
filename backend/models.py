@@ -1,6 +1,7 @@
 from typing import Optional
 from gqlalchemy import Node, Field, Relationship, Memgraph
 import logging.config
+import time
 logging.config.fileConfig('./logging.ini', disable_existing_loggers=False)
 log = logging.getLogger(__name__)
 memgraph = None
