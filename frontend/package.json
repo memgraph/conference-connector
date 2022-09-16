@@ -17,10 +17,14 @@
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@mui/icons-material": "^5.10.2",
     "@mui/material": "^5.10.2",
+    "d3-force": "^3.0.0",
+    "d3-zoom": "^3.0.0",
     "email-validator": "^2.0.4",
+    "leaflet": "^1.8.0",
     "next": "12.2.5",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "socket.io-client": "^4.5.1"
   },
   "devDependencies": {
     "@types/node": "18.7.9",

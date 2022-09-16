@@ -8,16 +8,18 @@ services:
     entrypoint:
       [
         "/usr/lib/memgraph/memgraph",
+        "--telemetry-enabled=false",
       ]
     ports:
       - "7687:7687"
+      - "7444:7444"
     networks:
       - app-tier
   backend:
     build: ./backend
     volumes:
       - ./backend:/app
-    command: uvicorn app:app --reload --host 0.0.0.0 
+    command: uvicorn app:app --host 0.0.0.0  --reload
     ports:
       - 8000:8000
     depends_on:
@@ -28,6 +30,7 @@ services:
       - MG_HOST=memgraph-mage
       - MG_PORT=7687
       - BEARER_TOKEN=${BEARER_TOKEN}
+      - TWITTER_RULE=${TWITTER_RULE}
   frontend-app:
     build: ./frontend
     volumes:

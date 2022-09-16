@@ -376,3 +376,9 @@ yarn-error.log*
 mg_lib/
 mg_log/
 .env
+
+#vscode
+.vscode
+
+# Signup sheet - remove in production
+signups.csv
