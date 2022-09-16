@@ -8,7 +8,7 @@ from fastapi import (
     BackgroundTasks,
 )
 from fastapi.testclient import TestClient
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from gqlalchemy import Match, Call
 from models import memgraph
 from twitter_data import (
