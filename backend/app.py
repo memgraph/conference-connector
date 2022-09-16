@@ -37,6 +37,7 @@ log = logging.getLogger(__name__)
 app = FastAPI()
 origins = [
     "https://conconnector.memgraph.com",
+    "https://conconnector.memgraph.com/api",
 ]
 app.add_middleware(
     CORSMiddleware,
