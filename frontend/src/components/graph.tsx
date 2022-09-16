@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { OrbEventType } from '../public/libs/orb';
-import { Orb } from '../public/libs/orb/orb';
+import { OrbEventType } from '../../public/libs/orb';
+import { Orb } from '../../public/libs/orb/orb';
 
 interface MyNode {
     id: string;
