@@ -31,17 +31,12 @@ import time
 import json
 import traceback
 
-logging.config.fileConfig('./logging.ini', disable_existing_loggers=False)
+logging.config.fileConfig("./logging.ini", disable_existing_loggers=False)
 log = logging.getLogger(__name__)
 
 app = FastAPI()
 origins = [
-    "https://conconnector.memgraph.com/",
-    "https://conconnector.memgraph.com/api",
-    "http://conconnector.memgraph.com/",
-    "http://conconnector.memgraph.com/",
-    "http://localhost:3000",
-    "http://localhost:3000/api"
+    "https://conconnector.memgraph.com",
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -51,11 +46,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 def init_signups_log():
     log.info("Setting up signups file!")
     path = exists("./signups.csv")
-    if path: 
-        pass          
+    if path:
+        pass
     else:
         with open("./signups.csv", "a", newline="") as file:
             file.write("username,name,email\n")
@@ -70,7 +66,7 @@ def connect_to_memgraph():
             if memgraph._get_cached_connection().is_active():
                 connection_established = True
                 log.info("Connected to memgraph.")
-        except Exception as e :
+        except Exception as e:
             log.info("Memgraph probably isn't running.")
             log.error(e, exc_info=True)
             time.sleep(5)
@@ -78,7 +74,7 @@ def connect_to_memgraph():
 
 def set_up_memgraph():
     log.info("Setting up trigger!")
-    try: 
+    try:
         memgraph.execute("CALL pagerank_online.set(100, 0.2) YIELD *")
         memgraph.execute(
             """CREATE TRIGGER pagerank_trigger 
@@ -86,10 +82,10 @@ def set_up_memgraph():
                 EXECUTE CALL pagerank_online.update(createdVertices, createdEdges, deletedVertices, deletedEdges) YIELD *
                 SET node.rank = rank"""
         )
-    except Exception as e: 
+    except Exception as e:
         log.info("Trigger probably set previously!")
         log.error(e, exc_info=True)
-        
+
 
 @app.on_event("startup")
 def startup_event():
@@ -141,7 +137,7 @@ async def log_signup(request: Request):
     username = user_json["username"]
     name = user_json["name"]
     email = user_json["email"]
-    log.info("Twitter handle: " +  username)
+    log.info("Twitter handle: " + username)
 
     log_participant(username, name, email)
 
@@ -164,5 +160,3 @@ async def log_signup(request: Request):
 @app.on_event("shutdown")
 def shutdown_event():
     close_connections()
-
-
