@@ -20,8 +20,6 @@ from twitter_stream import (
     close_stream,
 )
 
-
-
 logging.config.fileConfig('./logging.ini', disable_existing_loggers=False)
 log = logging.getLogger(__name__)
 
@@ -87,11 +85,19 @@ def save_history(tweets):
                 participant_node = Participant(
                     id=tweet["participant_id"],
                     name=tweet["participant_name"],
-                    username=tweet["participant_username"],
+                    username=tweet["participant_username"].lower(),
                     profile_image=tweet["participant_image"],
-                    claimed=False,
                 )
-                participant_node = memgraph.save_node(participant_node)
+                results = list(
+                    Match()
+                    .node(labels="Participant", username=participant_node.username, variable="n")
+                    .return_()
+                    .execute()
+                )
+                if results:
+                    participant_node = participant_node.load(memgraph)
+                else:
+                    participant_node = memgraph.save_node(participant_node)
 
                 tweeted_rel = TweetedBy(
                         _start_node_id=tweet_node._id, _end_node_id=participant_node._id
@@ -121,7 +127,7 @@ def add_history_to_backlog():
             "label": next(iter(participant_node._labels)),
             "p_id": participant_node._properties["id"],
             "name": participant_node._properties["name"],
-            "username": participant_node._properties["username"],
+            "username": participant_node._properties["username"].lower(),
             "image": participant_node._properties["profile_image"],
             "claimed": participant_node._properties["claimed"],
         }
@@ -216,34 +222,42 @@ def get_ranked_participants():
 
 
 def save_participant(participant):
-    Participant(
-        id=participant["id"],
-        name=participant["name"],
-        username=participant["username"],
-        profile_image=participant["profile_image"],
-        claimed=False,
-    ).save(memgraph)
+    try:
+        participant = Participant(
+            id=participant["id"],
+            name=participant["name"],
+            username=participant["username"].lower(),
+            profile_image=participant["profile_image"],
+        )
+        memgraph.save_node(participant)
+    except: 
+        log.error(e, exc_info=True)
+    
 
 
 def save_and_claim(participant):
-    participant = Participant(
-        id=participant["id"],
-        name=participant["name"],
-        username=participant["username"],
-        profile_image=participant["profile_image"],
-        claimed=True,
-    )
-    memgraph.save_node(participant)
+    try:
+        participant = Participant(
+            id=participant["id"],
+            name=participant["name"],
+            username=participant["username"].lower(),
+            profile_image=participant["profile_image"],
+            claimed=True,
+        )
+        memgraph.save_node(participant)
+    except: 
+        log.error(e, exc_info=True)
 
 
 def get_participant_by_username(username: str):
     log.info("Getting participant by username: " + username)
+    username = username.lower()
     try:
-        request = twitter_client.get_user(username=username)
+        request = twitter_client.get_user(username=username,  user_fields=["profile_image_url"])
         participant = {
             "id": request.data.id,
             "name": request.data.name,
-            "username": request.data.username,
+            "username": request.data.username.lower(),
             "profile_image": request.data.profile_image_url,
         }
         return participant
@@ -258,7 +272,7 @@ def get_all_nodes_and_relationships():
         results = list(
             Match()
             .node(variable="n")
-            .to(variable="r")
+            .to(variable="r", directed=False)
             .node(variable="m")
             .return_()
             .execute()
@@ -350,7 +364,7 @@ def whitelist_participant(username: str):
     try:
         results = list(
             Match()
-            .node(labels="Participant", username=username, variable="n")
+            .node(labels="Participant", username=username.lower(), variable="n")
             .set_(item="n.claimed", operator=Operator.ASSIGNMENT, literal=True)
             .return_()
             .execute()
@@ -367,15 +381,17 @@ def is_participant_in_db(username: str):
     Args:
         username (str): Participant's username - Twitter handle
     """
-
-    results = (
+    results = list(
         Match()
-        .node(labels="Participant", username=username, variable="n")
-        .return_("n.username")
+        .node(labels="Participant", username=username.lower(), variable="n")
+        .return_()
         .execute()
     )
+    if results:
+        return True
+    else: 
+        return False
 
-    return False if len(list(results)) == 0 else True
 
 
 def log_participant(username: str, email: str, name: str):
@@ -386,7 +402,7 @@ def log_participant(username: str, email: str, name: str):
         email (str): Participant's email
         name (str): Participant's full name
     """
-    log.info("New signup: " + username + "email is: " + email + "full name is: "+ name )
+    log.info("New signup: " + username.lower() + "email is: " + email + "full name is: "+ name )
     with open("./signups.csv", "a", newline="") as file:
         file.write(username + "," + name + "," + email + "\n")
     file.close()
@@ -395,10 +411,10 @@ def log_participant(username: str, email: str, name: str):
 def get_participant_nodes_relationships(username: str):
     log.info("Getting subgraph for participant: " + username)
     try:
-        results = (
+        results = list(
             Match()
-            .node(labels="Participant", username=username, variable="p")
-            .from_(variable="r")
+            .node(labels="Participant", username=username.lower(), variable="p")
+            .to(variable="r", directed=False)
             .node(variable="m")
             .return_()
             .execute()
@@ -406,18 +422,53 @@ def get_participant_nodes_relationships(username: str):
         participant_nodes = set()
         tweet_nodes = set()
         relationships = set()
-
-        for result in results:
-            nodes = list()
-            nodes.append(result["p"])
-            nodes.append(result["m"])
-            for n in nodes:
-                n_label = next(iter(n._labels))
-                if n_label == "Participant":
-                    participant_nodes.add(
+        log.info(len(results))
+        if results:
+            for result in results:
+                nodes = list()
+                nodes.append(result["p"])
+                nodes.append(result["m"])
+                for n in nodes:
+                    n_label = next(iter(n._labels))
+                    if n_label == "Participant":
+                        participant_nodes.add(
+                            (
+                                n._id,
+                                n_label,
+                                n._properties["id"],
+                                n._properties["name"],
+                                n._properties["username"],
+                                n._properties["profile_image"],
+                                n._properties["claimed"],
+                                n._properties["rank"],
+                            )
+                        )
+                    if n_label == "Tweet":
+                        tweet_nodes.add(
+                            (
+                                n._id,
+                                n_label,
+                                n._properties["id"],
+                                n._properties["text"],
+                                n._properties["created_at"],
+                            )
+                        )
+                r = result["r"]
+                relationships.add((r._id, r._start_node_id, r._end_node_id, r._type))
+        else:
+            #When user didn't tweet or retweeted.
+            log.info("Else running")
+            results = list(
+            Match()
+                .node(labels="Participant", username=username.lower(), variable="p")
+                .return_()
+                .execute()
+            )
+            n=results[0]["p"]
+            participant_nodes.add(
                         (
                             n._id,
-                            n_label,
+                            next(iter(n._labels)),
                             n._properties["id"],
                             n._properties["name"],
                             n._properties["username"],
@@ -425,19 +476,7 @@ def get_participant_nodes_relationships(username: str):
                             n._properties["claimed"],
                             n._properties["rank"],
                         )
-                    )
-                if n_label == "Tweet":
-                    tweet_nodes.add(
-                        (
-                            n._id,
-                            n_label,
-                            n._properties["id"],
-                            n._properties["text"],
-                            n._properties["created_at"],
-                        )
-                    )
-            r = result["r"]
-            relationships.add((r._id, r._start_node_id, r._end_node_id, r._type))
+            )
 
         participants = [
             {
