@@ -104,7 +104,8 @@ def read_root():
 async def get_graph():
     try:
         return get_all_nodes_and_relationships()
-    except:
+    except Exception as e:
+        log.error(e, exc_info=True)
         raise HTTPException(status_code=500, detail="Issue with getting the graph.")
 
 
@@ -123,6 +124,7 @@ async def get_best_ranked():
     try:
         return get_ranked_participants()
     except Exception as e:
+        log.error(e, exc_info=True)
         raise HTTPException(
             status_code=500, detail="Issue with getting the best ranked participants."
         )
@@ -138,18 +140,17 @@ async def log_signup(request: Request):
     email = user_json["email"]
     log.info("Twitter handle: " + username)
 
-    log_participant(username, name, email)
-
     is_participant = is_participant_in_db(username)
 
     if is_participant:
         whitelist_participant(username)
-
+        log_participant(username, name, email)
     else:
         try:
             participant = get_participant_by_username(username)
             save_and_claim(participant)
-        except:
+            log_participant(username, name, email)
+        except Exception as e:
             raise HTTPException(
                 status_code=404,
                 detail=f"User with username {username} does not exist on Twitter.",

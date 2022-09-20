@@ -1,5 +1,5 @@
 from tweepy import StreamingClient, StreamRule
-from gqlalchemy import Create
+from gqlalchemy import Create, Match
 from models import memgraph, Participant, Tweet, TweetedBy
 from collections import deque
 import logging
@@ -43,26 +43,42 @@ class TweetStream(StreamingClient):
                 created_at=tweet_data["created_at"],
             )
             tweet_node = memgraph.save_node(tweet_node)
-
+            
             participant_node = Participant(
-                id=tweet_data["participant_id"],
-                name=tweet_data["participant_name"],
-                username=tweet_data["participant_username"],
-                profile_image=tweet_data["participant_image"],
+                    id=tweet_data["participant_id"],
+                    name=tweet_data["participant_name"],
+                    username=tweet_data["participant_username"].lower(),
+                    profile_image=tweet_data["participant_image"],
             )
-            participant_node = memgraph.save_node(participant_node)
+            log.info("Match")
 
+            results = list(
+                Match()
+                .node(labels="Participant", username=participant_node.username, variable="n")
+                .return_()
+                .execute()
+            )
+            
+            if results:
+                participant_node = participant_node.load(memgraph)
+            else:
+                participant_node = memgraph.save_node(participant_node)
+        
             tweeted_rel = TweetedBy(
                 _start_node_id=tweet_node._id, _end_node_id=participant_node._id
             )
-            tweeted_rel = memgraph.save_relationship(tweeted_rel)
+            try:
+                   tr = tweeted_rel.load(memgraph)
+                   pass
+            except:
+                    memgraph.save_relationship(tweeted_rel)
 
             participant = {
                 "id": participant_node._id,
                 "label": next(iter(participant_node._labels)),
                 "p_id": participant_node._properties["id"],
                 "name": participant_node._properties["name"],
-                "username": participant_node._properties["username"],
+                "username": participant_node._properties["username"].lower(),
                 "image": participant_node._properties["profile_image"],
                 "claimed": participant_node._properties["claimed"],
             }
