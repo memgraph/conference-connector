@@ -33,11 +33,14 @@ services:
       - BEARER_TOKEN=${BEARER_TOKEN}
       - TWITTER_RULE=${TWITTER_RULE}
   frontend-app:
-    build: ./frontend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+    container_name: frontend-app
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
     ports:
       - "3000:3000"
+    depends_on:
+      - backend
     networks:
       - app-tier

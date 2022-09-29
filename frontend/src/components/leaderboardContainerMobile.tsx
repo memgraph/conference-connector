@@ -25,7 +25,7 @@ const LeaderboardContainerMobile = () => {
 
     const fetchLeaderboard = async () => {
         console.log("fetching leaderboard mobile");
-        const response = await fetch('http://localhost:8000/api/ranked')
+        const response = await fetch('https://conconnector.memgraph.com/api/ranked')
         if (!response.ok) {
             console.log("error happened")
             throw new Error('Data could not be fetched!')

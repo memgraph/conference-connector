@@ -131,6 +131,7 @@ def add_history_to_backlog():
             "image": participant_node._properties["profile_image"],
             "claimed": participant_node._properties["claimed"],
         }
+        participants_backlog.appendleft(participant)
     tweets_results = list(
         Match().node(labels="Tweet", variable="t").return_().execute()
     )

@@ -4,14 +4,14 @@ import styles from '../styles/Home.module.css'
 import * as EmailValidator from 'email-validator';
 
 
-export default function ClaimForm() {
+
+const ClaimForm = () => {
     const [username, setUsername] = useState("");
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [isEmailValid, setIsEmailValid] = useState(false);
     const [isUsernameValid, setIsUsernameValid] = useState(false);
     const [isNameValid, setIsNameValid] = useState(false);
-    const [invitationText, setInvitationText] = useState("Join the graph!");
     const [usernameLabel, setUsernameLabel] = useState("Twitter username");
 
 
@@ -27,6 +27,15 @@ export default function ClaimForm() {
         (document.getElementById("email") as HTMLInputElement).value = "";
         (document.getElementById("username") as HTMLInputElement).value = "";
     }
+
+    const closeForm = () => {
+        resetForm();
+        let blur = document.getElementById("pop-up-background")!;
+        let popUp = document.getElementById("pop-up")!;
+        blur.style.display = "none";
+        popUp.style.display = "none";
+    }
+
 
 
     const handleUsernameChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
@@ -78,7 +87,7 @@ export default function ClaimForm() {
     };
 
     const sendSignupData = async (userData: any) => {
-        const response = await fetch("http://localhost:8000/api/signup", {
+        const response = await fetch("https://conconnector.memgraph.com/api/signup", {
             method: 'POST',
             mode: 'cors',
             body: JSON.stringify(userData)
@@ -91,14 +100,11 @@ export default function ClaimForm() {
                 setUsernameLabel("Please enter a valid Twitter handle");
             }
             else {
-                //currently this happens only with ', quotes should be escaped in username
                 console.log("Something went wrong. Please try again.");
             }
         }
         else {
-            //setIsConnected(true);
-            setInvitationText("Visit Memgraph booth number 230 and find yourself on the graph!");
-            resetForm();
+            closeForm();
         }
     }
 
@@ -114,9 +120,8 @@ export default function ClaimForm() {
         }
 
         sendSignupData(userData).then((data: any) => {
-        }).catch((e) => {
-            console.log(e.message)
-        });
+            //setIsConnected(true);
+        }).catch((e) => console.log(e.message))
 
     };
 
@@ -127,10 +132,17 @@ export default function ClaimForm() {
                     <img src='/home/memgraph-logo.png'></img>
                 </a>
             </div>
+
+            <button className={styles.buttonClose} onClick={closeForm}>
+                <img src='/home/close-icon.svg'></img>
+            </button>
+
+
             <div className={styles.claimForm}>
+
                 <Grid container spacing={3}>
                     <Grid item sm={12} xs={12}>
-                        <h3>{invitationText}</h3>
+                        <h3>Join the graph!</h3>
                     </Grid>
                     <Grid item sm={12} xs={12}>
                         <Grid container spacing={1}>
@@ -169,11 +181,13 @@ export default function ClaimForm() {
                         </Grid>
                     </Grid>
                     <Grid item sm={12}>
-                        <button id="" className={styles.joinButton} onClick={handleJoin} disabled={!isUsernameValid || !isEmailValid || !isNameValid}>JOIN</button>
+                        <button className={styles.joinButton} onClick={handleJoin} disabled={!isUsernameValid || !isEmailValid || !isNameValid}>Join</button>
                     </Grid>
                 </Grid>
             </div>
-
         </div>
+
     )
 }
+
+export default ClaimForm;
