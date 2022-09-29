@@ -43,7 +43,7 @@ const LeaderboardContainerMobile = () => {
             .catch((e) => console.log(e.message));
 
         // fetch every 30 seconds
-        setInterval(fetchLeaderboard, 30000);
+        setInterval(fetchLeaderboard, 60000);
     }, []);
 
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { OrbEventType } from '../../public/libs/orb';
-import { Orb } from '../../public/libs/orb/orb';
+import { DefaultView, IEdgeBase, INodeBase, OrbEventType } from '../../public/libs/orb';
+import { IOrbViewContext, Orb } from '../../public/libs/orb/orb';
 
 interface MyNode {
     id: string;
@@ -65,13 +65,47 @@ const Graph: React.FC<Props> = ({
                 .forEach((node) => {
                     node.properties.color = '#8C0082';
                     node.properties.size = 3;
-                    node.properties.fontSize = 3;
+                    node.properties.fontSize = 0;
                 });
+            // orb.current.data
+            //     .getEdges()
+            //     .filter((edge) => ["TWEETED_BY", "FOLLOWING", "RETWEETED", "LIKES"].includes(edge.getLabel()!))
+            //     .forEach((edge) => {
+            //         edge.properties.fontSize = 0;
+            //     })
+
             orb.current.data
                 .getEdges()
-                .filter((edge) => ["TWEETED_BY", "FOLLOWING", "RETWEETED", "LIKES"].includes(edge.getLabel()!))
+                .filter((edge) => edge.getLabel() === "TWEETED_BY")
                 .forEach((edge) => {
-                    edge.properties.fontSize = 2;
+                    edge.properties.color = "#FB6E00A6";
+                    edge.properties.colorHover = "#FB6E00";
+                    edge.properties.fontSize = 0;
+                })
+            orb.current.data
+                .getEdges()
+                .filter((edge) => edge.getLabel() === "FOLLOWING")
+                .forEach((edge) => {
+                    edge.properties.color = "#857F87A6";
+                    edge.properties.colorHover = "#857F87";
+                    edge.properties.fontSize = 0;
+                })
+
+            orb.current.data
+                .getEdges()
+                .filter((edge) => edge.getLabel() === "RETWEETED")
+                .forEach((edge) => {
+                    edge.properties.color = "#DD2222A6";
+                    edge.properties.colorHover = "#DD2222";
+                    edge.properties.fontSize = 0;
+                })
+            orb.current.data
+                .getEdges()
+                .filter((edge) => edge.getLabel() === "LIKES")
+                .forEach((edge) => {
+                    edge.properties.color = "#FFC500A6";
+                    edge.properties.colorHover = "#FFC500";
+                    edge.properties.fontSize = 0;
                 })
             orb.current.data
                 .getNodes()
@@ -98,6 +132,7 @@ const Graph: React.FC<Props> = ({
                     }, 500);
                 }
             });
+
 
             orb.current.view.setSettings({
                 simulation: {

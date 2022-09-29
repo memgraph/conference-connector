@@ -48,7 +48,7 @@ const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
 
         const id = setInterval(() => {
             fetchLeaderboard();
-        }, 30000);
+        }, 60000);
 
         fetchLeaderboard();
 

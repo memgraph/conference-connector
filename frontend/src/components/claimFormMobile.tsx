@@ -6,25 +6,25 @@ import * as EmailValidator from 'email-validator';
 
 export default function ClaimForm() {
     const [username, setUsername] = useState("");
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [isEmailValid, setIsEmailValid] = useState(false);
+    // const [name, setName] = useState("");
+    // const [email, setEmail] = useState("");
+    // const [isEmailValid, setIsEmailValid] = useState(false);
     const [isUsernameValid, setIsUsernameValid] = useState(false);
-    const [isNameValid, setIsNameValid] = useState(false);
+    // const [isNameValid, setIsNameValid] = useState(false);
     const [invitationText, setInvitationText] = useState("Join the graph!");
     const [usernameLabel, setUsernameLabel] = useState("Twitter username");
 
 
     const resetForm = () => {
         setUsername("");
-        setName("");
-        setEmail("");
-        setIsEmailValid(false);
+        // setName("");
+        // setEmail("");
+        // setIsEmailValid(false);
         setIsUsernameValid(false);
-        setIsNameValid(false);
-        setUsernameLabel("Twitter username");
-        (document.getElementById("name") as HTMLInputElement).value = "";
-        (document.getElementById("email") as HTMLInputElement).value = "";
+        // setIsNameValid(false);
+        setUsernameLabel("Twitter username (without @)");
+        // (document.getElementById("name") as HTMLInputElement).value = "";
+        // (document.getElementById("email") as HTMLInputElement).value = "";
         (document.getElementById("username") as HTMLInputElement).value = "";
     }
 
@@ -46,36 +46,36 @@ export default function ClaimForm() {
         setUsername(username);
     };
 
-    const handleEmailChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
-        const val = e.target.value;
-        let emailInput = document.getElementById("email")!;
+    // const handleEmailChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
+    //     const val = e.target.value;
+    //     let emailInput = document.getElementById("email")!;
 
-        if (EmailValidator.validate(String(val))) {
-            setIsEmailValid(true);
-            emailInput.style.borderColor = "green";
-        } else {
-            setIsEmailValid(false);
-            emailInput.style.borderColor = "red";
-        }
+    //     if (EmailValidator.validate(String(val))) {
+    //         setIsEmailValid(true);
+    //         emailInput.style.borderColor = "green";
+    //     } else {
+    //         setIsEmailValid(false);
+    //         emailInput.style.borderColor = "red";
+    //     }
 
-        setEmail(val);
-    };
+    //     setEmail(val);
+    // };
 
-    const handleNameChange = (e: { target: { value: string; }; }) => {
-        const reg = new RegExp(/^[a-zA-Z]+( [a-zA-Z]+)+$/);
-        const val = e.target.value;
-        let nameInput = document.getElementById("name")!;
+    // const handleNameChange = (e: { target: { value: string; }; }) => {
+    //     const reg = new RegExp(/^[a-zA-Z]+( [a-zA-Z]+)+$/);
+    //     const val = e.target.value;
+    //     let nameInput = document.getElementById("name")!;
 
-        if (reg.test(val)) {
-            setIsNameValid(true);
-            nameInput.style.borderColor = "green";
-        } else {
-            setIsNameValid(false);
-            nameInput.style.borderColor = "red";
-        }
+    //     if (reg.test(val)) {
+    //         setIsNameValid(true);
+    //         nameInput.style.borderColor = "green";
+    //     } else {
+    //         setIsNameValid(false);
+    //         nameInput.style.borderColor = "red";
+    //     }
 
-        setName(val);
-    };
+    //     setName(val);
+    // };
 
     const sendSignupData = async (userData: any) => {
         const response = await fetch("http://localhost:8000/api/signup", {
@@ -104,12 +104,12 @@ export default function ClaimForm() {
 
     const handleJoin = () => {
         // strip string if it begins with @
-        let newUsername = username.charAt(0) === "@" ? username.substring(1) : username;
+        // let newUsername = username.charAt(0) === "@" ? username.substring(1) : username;
 
         let userData = {
-            "name": name,
-            "username": newUsername,
-            "email": email
+            // "name": name,
+            "username": username,
+            // "email": email
 
         }
 
@@ -139,12 +139,12 @@ export default function ClaimForm() {
                             </Grid>
                             <Grid item sm={12} xs={12}>
                                 <div className={styles.claimInput}>
-                                    <input id="username" type="text" placeholder="@username" onChange={handleUsernameChange} required></input>
+                                    <input id="username" type="text" placeholder="username" onChange={handleUsernameChange} required></input>
                                 </div>
                             </Grid>
                         </Grid>
                     </Grid>
-                    <Grid item sm={12} xs={12}>
+                    {/* <Grid item sm={12} xs={12}>
                         <Grid container spacing={1}>
                             <Grid item sm={12} xs={12}>
                                 <label className={styles.claimLabel}>Email</label>
@@ -167,9 +167,9 @@ export default function ClaimForm() {
                                 </div>
                             </Grid>
                         </Grid>
-                    </Grid>
+                    </Grid> */}
                     <Grid item sm={12}>
-                        <button id="" className={styles.joinButton} onClick={handleJoin} disabled={!isUsernameValid || !isEmailValid || !isNameValid}>JOIN</button>
+                        <button id="" className={styles.joinButton} onClick={handleJoin} disabled={!isUsernameValid}>JOIN</button>
                     </Grid>
                 </Grid>
             </div>
