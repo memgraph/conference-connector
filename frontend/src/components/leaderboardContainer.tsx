@@ -33,7 +33,7 @@ const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
         const fetchLeaderboard = async () => {
             console.log("fetching leaderboard");
             try {
-                const response = await fetch('https://conconnector.memgraph.com/api/ranked')
+                const response = await fetch('https://conconnector.memgraph.com/ranked')
                 if (!response.ok) {
                     console.log("error happened")
                     throw new Error('Data could not be fetched!')
@@ -48,7 +48,7 @@ const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
 
         const id = setInterval(() => {
             fetchLeaderboard();
-        }, 30000);
+        }, 60000);
 
         fetchLeaderboard();
 
