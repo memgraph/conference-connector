@@ -42,7 +42,7 @@ const MainGraph = () => {
         const fetchData = async () => {
             console.log("initial main graph");
             try {
-                const response = await fetch('https://conconnector.memgraph.com/api/graph');
+                const response = await fetch('http://localhost:8000/api/graph');
                 if (!response.ok) {
                     throw new Error('Data could not be fetched!');
                 } else {
