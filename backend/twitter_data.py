@@ -131,7 +131,7 @@ def add_history_to_backlog():
             "image": participant_node._properties["profile_image"],
             "claimed": participant_node._properties["claimed"],
         }
-        participants_backlog.appendleft(participant)
+        participants_backlog.append(participant)
     tweets_results = list(
         Match().node(labels="Tweet", variable="t").return_().execute()
     )
@@ -144,7 +144,7 @@ def add_history_to_backlog():
             "text": tweet_node._properties["text"],
             "created_at": tweet_node._properties["created_at"],
         }
-        tweets_backlog.appendleft(tweet)
+        tweets_backlog.append(tweet)
 
 
 def get_tweet_retweets(id: int):
@@ -546,6 +546,7 @@ def update_graph_tweets():
     log.info("Starting updating tweets relationships: ")
     log.info("Tweet backlog status: " + str(len(tweets_backlog)))
     global limit_likes_retweets
+    log.info("Tweet limit status: " + str(limit_likes_retweets))
 
     while limit_likes_retweets > 0 and tweets_backlog:
         tweet = tweets_backlog.pop()
@@ -554,7 +555,7 @@ def update_graph_tweets():
         current = datetime.now(timezone.utc)
         delta = current - created_at
         hours = delta.total_seconds() / (60 * 60)
-        if hours >= 4:
+        if delta.total_seconds() > 10800:
             try:
                 log.info(tweet)
                 likes = get_tweet_likes(tweet["t_id"])
@@ -613,13 +614,14 @@ def update_graph_tweets():
                 tweets_backlog.append(tweet)
                 break
         else:
-            tweets_backlog.append(tweet)
+            tweets_backlog.appendleft(tweet)
 
 
 def update_graph_participants():
     log.info("Starting updating participants followers: ")
     log.info("Participants backlog status: " + str(len(participants_backlog)))
     global limit_following
+    log.info("Participants limit status: " + str(limit_following))
     while limit_following > 0 and participants_backlog:
         new_participant = participants_backlog.pop()
         try:
@@ -664,7 +666,7 @@ def schedule_graph_updates():
     limit_following = 7
     schedule.every(15).minutes.do(update_request_limit_data)
     schedule.every(3).minutes.do(update_graph_tweets)
-    schedule.every(5).minutes.do(update_graph_participants)
+    schedule.every(3).minutes.do(update_graph_participants)
 
 
 def init_db_from_twitter():
