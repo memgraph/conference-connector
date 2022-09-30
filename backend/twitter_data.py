@@ -615,6 +615,7 @@ def update_graph_tweets():
                 break
         else:
             tweets_backlog.appendleft(tweet)
+            break
 
 
 def update_graph_participants():
