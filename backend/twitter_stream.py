@@ -50,7 +50,6 @@ class TweetStream(StreamingClient):
                     username=tweet_data["participant_username"].lower(),
                     profile_image=tweet_data["participant_image"],
             )
-            log.info("Match")
 
             results = list(
                 Match()
@@ -98,8 +97,11 @@ class TweetStream(StreamingClient):
                 "label": tweeted_rel._type,
             }
 
+            #If in db do not get followers again. 
+            if not results:
+                participants_backlog.appendleft(participant)
+
             tweets_backlog.appendleft(tweet)
-            participants_backlog.appendleft(participant)
 
         except Exception as e:
             log.error(e, exc_info=True)

@@ -556,7 +556,7 @@ def update_graph_tweets():
         current = datetime.now(timezone.utc)
         delta = current - created_at
         hours = delta.total_seconds() / (60 * 60)
-        if delta.total_seconds() > 180:
+        if hours >= 4:
             try:
                 log.info(tweet)
                 likes = get_tweet_likes(tweet["t_id"])
@@ -666,7 +666,7 @@ def schedule_graph_updates():
     limit_following = 7
     schedule.every(15).minutes.do(update_request_limit_data)
     schedule.every(3).minutes.do(update_graph_tweets)
-    schedule.every(3).minutes.do(update_graph_participants)
+    schedule.every(5).minutes.do(update_graph_participants)
 
 
 def init_db_from_twitter():
