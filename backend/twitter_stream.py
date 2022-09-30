@@ -99,6 +99,7 @@ class TweetStream(StreamingClient):
 
             #If in db do not get followers again. 
             if not results:
+                log.info("Participant not in DB, adding to backlog: " + participant["username"])
                 participants_backlog.appendleft(participant)
 
             tweets_backlog.appendleft(tweet)

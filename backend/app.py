@@ -53,7 +53,7 @@ def init_signups_log():
         pass
     else:
         with open("./signups.csv", "a", newline="") as file:
-            file.write("username,name,email\n")
+            file.write("username\n")
         file.close()
 
 
@@ -133,23 +133,20 @@ async def get_best_ranked():
 @app.post("/api/signup")
 async def log_signup(request: Request):
     user = await request.body()
-
     user_json = json.loads(user)
     username = user_json["username"]
-    name = user_json["name"]
-    email = user_json["email"]
     log.info("Twitter handle: " + username)
 
     is_participant = is_participant_in_db(username)
 
     if is_participant:
         whitelist_participant(username)
-        log_participant(username, name, email)
+        log_participant(username)
     else:
         try:
             participant = get_participant_by_username(username)
             save_and_claim(participant)
-            log_participant(username, name, email)
+            log_participant(username)
         except Exception as e:
             raise HTTPException(
                 status_code=404,

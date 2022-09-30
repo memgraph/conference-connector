@@ -395,17 +395,15 @@ def is_participant_in_db(username: str):
 
 
 
-def log_participant(username: str, email: str, name: str):
+def log_participant(username: str):
     """Logs the participant's data to the signups.csv file
 
     Args:
         username (str): Twitter handle
-        email (str): Participant's email
-        name (str): Participant's full name
     """
-    log.info("New signup: " + username.lower() + "email is: " + email + "full name is: "+ name )
+    log.info("New signup: " + username.lower())
     with open("./signups.csv", "a", newline="") as file:
-        file.write(username + "," + name + "," + email + "\n")
+        file.write(username + "\n")
     file.close()
 
 
