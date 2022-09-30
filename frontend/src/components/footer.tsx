@@ -16,7 +16,7 @@ function Footer() {
                 </Grid>
                 <Grid item xs={12} sm={4}>
                     <div className={styles.description}>
-                        Tweet and use #kafkasummit or #current22!
+                        Tweet and use #KafkaSummit or #Current22!
                     </div>
                 </Grid>
                 <Grid item xs={12} sm={4}>

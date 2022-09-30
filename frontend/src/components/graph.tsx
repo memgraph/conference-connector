@@ -138,7 +138,7 @@ const Graph: React.FC<Props> = ({
                 simulation: {
                     collision: {
                         strength: 1,
-                        radius: 20,
+                        radius: 100,
                     },
                 },
             });

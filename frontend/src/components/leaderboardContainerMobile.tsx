@@ -25,7 +25,7 @@ const LeaderboardContainerMobile = () => {
 
     const fetchLeaderboard = async () => {
         console.log("fetching leaderboard mobile");
-        const response = await fetch('https://conconnector.memgraph.com/ranked')
+        const response = await fetch('https://conconnector.memgraph.com/api/ranked')
         if (!response.ok) {
             console.log("error happened")
             throw new Error('Data could not be fetched!')
@@ -43,7 +43,7 @@ const LeaderboardContainerMobile = () => {
             .catch((e) => console.log(e.message));
 
         // fetch every 30 seconds
-        setInterval(fetchLeaderboard, 60000);
+        setInterval(fetchLeaderboard, 10000);
     }, []);
 
 

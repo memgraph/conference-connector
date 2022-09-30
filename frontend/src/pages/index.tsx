@@ -67,7 +67,7 @@ const Home: NextPage = () => {
 
       <Head>
         <title>Conference Connector</title>
-        <meta name="description" content="Connect to Kafka summit 2022 conference graph!" />
+        <meta name="description" content="Connect to Current 2022 conference graph!" />
       </Head>
       <div id="pop-up-background" className={styles.popUpBackground}>
       </div>

@@ -56,7 +56,7 @@ const MainGraph = () => {
 
         const id = setInterval(() => {
             fetchData();
-        }, 10000);
+        }, 60000);
 
         fetchData().then(() => setIsLoaded(true));
 

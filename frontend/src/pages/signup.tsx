@@ -14,7 +14,7 @@ const Signup = () => {
         <div>
             <div className={styles.mobileTable}>
                 <div className={styles.mobileHeader}>
-                    <h2>Tweet and use #kafkasummit or #current22, join the graph and win the prize!</h2>
+                    <h2>Tweet and use #KafkaSummit or #Current22, join the graph and win the prize!</h2>
                 </div>
             </div>
             <ClaimFormMobile></ClaimFormMobile>

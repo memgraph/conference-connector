@@ -78,7 +78,7 @@ export default function ClaimForm() {
     // };
 
     const sendSignupData = async (userData: any) => {
-        const response = await fetch("https://conconnector.memgraph.com/signup", {
+        const response = await fetch("https://conconnector.memgraph.com/api/signup", {
             method: 'POST',
             mode: 'cors',
             body: JSON.stringify(userData)
