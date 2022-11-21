@@ -26,16 +26,19 @@ init()
 
 class Participant(Node):
     id: int = Field(index=True, exists=True, unique=True, db=memgraph)
-    username: str = Field(unique=True)
+    username: str = Field(index=True, unique=True)
     name: str = Field()
     profile_image: str = Field()
     claimed: bool = Field(default=False)
+    hashtag: str = Field(index=True)
 
 
-class Tweet(Node):
+class Tweet(Node, index=True, db=memgraph):
     id: int = Field(index=True, exists=True, unique=True, db=memgraph)
     text: str = Field(exists=True)
     created_at: str = Field()
+    hashtag: str = Field(index=True, db=memgraph)
+    url: str = Field()
 
 
 class TweetedBy(Relationship, type="TWEETED_BY"):

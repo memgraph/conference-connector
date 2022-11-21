@@ -1,3 +1,3 @@
-FROM memgraph/memgraph-mage:1.3.1
+FROM memgraph/memgraph-mage:latest
 
 USER memgraph

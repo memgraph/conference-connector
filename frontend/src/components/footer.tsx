@@ -3,7 +3,7 @@ import styles from '../styles/Footer.module.css';
 
 
 
-function Footer() {
+function Footer({graphName}) {
     return (
         <footer className={styles.footer}>
             <Grid container height="100%">
@@ -16,7 +16,7 @@ function Footer() {
                 </Grid>
                 <Grid item xs={12} sm={4}>
                     <div className={styles.description}>
-                        Tweet and use #KafkaSummit or #Current22!
+                        Check out who are the most influential persons on {graphName} graph by Memgraph's PageRank!
                     </div>
                 </Grid>
                 <Grid item xs={12} sm={4}>

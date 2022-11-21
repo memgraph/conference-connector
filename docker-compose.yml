@@ -31,7 +31,9 @@ services:
       - MG_HOST=memgraph-mage
       - MG_PORT=7687
       - BEARER_TOKEN=${BEARER_TOKEN}
-      - TWITTER_RULE=${TWITTER_RULE}
+      - TWITTER_RULES=${TWITTER_RULES}
+    env_file:
+      - .env
   frontend-app:
     container_name: frontend-app
     build: 

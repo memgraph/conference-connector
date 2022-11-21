@@ -4,17 +4,17 @@ import styles from '../styles/Home.module.css'
 import Graph from "./graph";
 
 interface Props {
-    position: string,
-    fullName: string,
-    username: string,
+    position: number,
+    routeKey: string,
+    name: string,
     handleGraphUpdate: any
 }
 
-const LeaderboardCard: React.FC<Props> = ({ position, fullName, username, handleGraphUpdate }) => {
-    const fetchParticipant = async (username: string) => {
-        console.log("USERNAME: %s", username);
+const ChooseGraphCard: React.FC<Props> = ({ position, routeKey, name, handleGraphUpdate }) => {
+
+    const fetchGraph = async (graphTag: string) => {
         // const response = await fetch('https://conconnector.memgraph.com/api/user/' + username)
-        const response = await fetch('http://localhost:8000/api/user/' + username)
+        const response = await fetch('http://localhost:8000/api/graph/' + graphTag)
         if (!response.ok) {
             console.log("error happened")
             throw new Error('Data could not be fetched!')
@@ -45,11 +45,11 @@ const LeaderboardCard: React.FC<Props> = ({ position, fullName, username, handle
     }
 
     function handleClick() {
-        fetchParticipant(stripMonkey(username))
+        fetchGraph(stripMonkey(routeKey))
             .then((res) => {
                 cleanTweet();
                 // send data to parent component
-                handleGraphUpdate(res.nodes, res.relationships, username);
+                handleGraphUpdate(res.nodes, res.relationships, routeKey, name);
             })
             .catch((e) => console.log(e.message));
     }
@@ -57,17 +57,17 @@ const LeaderboardCard: React.FC<Props> = ({ position, fullName, username, handle
         <Grid item sm={12} xs={12}>
             <div className={styles.leaderboardCard}>
                 <div className={styles.rankingNumber}>
-                    {position}
+                    {position + 1}
                 </div>
                 <Grid container>
                     <Grid item sm={12} xs={12}>
                         <div className={styles.fullName}>
-                            {fullName}
+                            {routeKey}
                         </div>
                     </Grid>
                     <Grid item sm={12} xs={12}>
                         <div className={styles.username}>
-                            {username}
+                            {name}
                         </div>
                     </Grid>
                 </Grid>
@@ -81,4 +81,4 @@ const LeaderboardCard: React.FC<Props> = ({ position, fullName, username, handle
     );
 }
 
-export default LeaderboardCard
+export default ChooseGraphCard;

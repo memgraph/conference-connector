@@ -11,13 +11,20 @@ interface GraphData {
 }
 
 interface Props {
-    handleGraphUpdate: any,
+    graphKey: string;
+    handleGraphUpdate: any;
 }
 
-const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
+const LeaderboardContainer: React.FC<Props> = ({ graphKey, handleGraphUpdate }) => {
     const [allData, setAllData] = useState<Array<GraphData>>([]);
     const [filteredData, setFilteredData] = useState(allData);
     const [result, setResult] = useState<Array<GraphData>>([]);
+    const [rankKey, setRankKey] = useState("");
+
+    useEffect(() => {
+        setRankKey(graphKey);
+        console.log("evo napokon " + graphKey);
+    }, [graphKey]);
 
 
     function handleUsernameChange(e: { target: { value: React.SetStateAction<string>; }; }) {
@@ -31,9 +38,12 @@ const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
 
     useEffect(() => {
         const fetchLeaderboard = async () => {
-            console.log("fetching leaderboard");
+            if (rankKey === undefined || rankKey === "") {return;}
+            console.log("fetching leaderboard " + rankKey);
             try {
-                const response = await fetch('https://conconnector.memgraph.com/api/ranked')
+                if (rankKey === undefined) {return;}
+                // const response = await fetch('https://conconnector.memgraph.com/api/ranked/WC2022')
+                const response = await fetch('http://localhost:8000/api/ranked/' + rankKey)
                 if (!response.ok) {
                     console.log("error happened")
                     throw new Error('Data could not be fetched!')
@@ -54,7 +64,7 @@ const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
 
         return () => clearInterval(id);
 
-    }, []);
+    }, [rankKey]);
 
 
     if (result !== undefined) {
@@ -72,7 +82,7 @@ const LeaderboardContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
             </div>
             <div className={styles.rankings}>
                 <Grid container spacing={1}>
-                    <Leaderboard data={filteredData} handleGraphUpdate={handleGraphUpdate}></Leaderboard>
+                    <Leaderboard data={result} handleGraphUpdate={handleGraphUpdate}></Leaderboard>
                 </Grid>
             </div>
         </div>

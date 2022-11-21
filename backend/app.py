@@ -1,3 +1,10 @@
+import os
+import logging.config
+import time
+import json
+
+from os.path import exists
+
 from typing import Union
 from fastapi import (
     FastAPI,
@@ -10,6 +17,7 @@ from fastapi import (
 from fastapi.testclient import TestClient
 from starlette.middleware.cors import CORSMiddleware
 from gqlalchemy import Match, Call
+
 from models import memgraph
 from twitter_data import (
     init_db_from_twitter,
@@ -23,20 +31,17 @@ from twitter_data import (
     get_participant_nodes_relationships,
     close_connections,
     get_ranked_participants,
+    get_routes,
 )
-from os.path import exists
-import logging.config
-import os
-import time
-import json
-import traceback
+
 
 logging.config.fileConfig("./logging.ini", disable_existing_loggers=False)
 log = logging.getLogger(__name__)
 
 app = FastAPI()
 
-origins = ["https://conconnector.memgraph.com"]
+# origins = ["https://conconnector.memgraph.com"]
+origins=["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -75,6 +80,14 @@ def set_up_memgraph():
     log.info("Setting up trigger!")
     try:
         memgraph.execute("CALL pagerank_online.set(100, 0.2) YIELD *")
+        memgraph.execute("DROP TRIGGER pagerank_trigger")
+    except Exception as e:
+        log.info("Trigger probably not set previously!")
+        log.error(e, exc_info=True)
+
+def set_up_memgraph_trigger():
+    log.info("Setting up trigger!")
+    try:
         memgraph.execute(
             """CREATE TRIGGER pagerank_trigger 
                 BEFORE COMMIT 
@@ -88,10 +101,12 @@ def set_up_memgraph():
 
 @app.on_event("startup")
 def startup_event():
+    global api_routes
     init_twitter_env()
-    init_signups_log()
+    # init_signups_log()
     connect_to_memgraph()
     set_up_memgraph()
+    set_up_memgraph_trigger()
     init_db_from_twitter()
 
 
@@ -100,10 +115,10 @@ def read_root():
     return {"Hello": "World"}
 
 
-@app.get("/api/graph")
-async def get_graph():
+@app.get("/api/graph/{graph_tag}")
+async def get_graph(graph_tag: str):
     try:
-        return get_all_nodes_and_relationships()
+        return get_all_nodes_and_relationships(graph_tag)
     except Exception as e:
         log.error(e, exc_info=True)
         raise HTTPException(status_code=500, detail="Issue with getting the graph.")
@@ -119,15 +134,26 @@ async def get_participant_subgraph(username: str):
         )
 
 
-@app.get("/api/ranked")
-async def get_best_ranked():
+@app.get("/api/ranked/{graph_tag}")
+async def get_best_ranked(graph_tag: str):
     try:
-        return get_ranked_participants()
+        return get_ranked_participants(graph_tag)
     except Exception as e:
         log.error(e, exc_info=True)
         raise HTTPException(
             status_code=500, detail="Issue with getting the best ranked participants."
         )
+
+@app.get("/api/available-graphs/")
+async def get_available_graphs():
+    try:
+        return get_routes()
+    except Exception as e:
+        log.error(e, exc_info=True)
+        raise HTTPException(
+            status_code=500, detail="Issue with getting graphs!"
+        )
+
 
 
 @app.post("/api/signup")

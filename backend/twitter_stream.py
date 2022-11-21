@@ -2,6 +2,7 @@ from tweepy import StreamingClient, StreamRule
 from gqlalchemy import Create, Match
 from models import memgraph, Participant, Tweet, TweetedBy
 from collections import deque
+from typing import List
 import logging
 import traceback
 
@@ -24,6 +25,9 @@ class TweetStream(StreamingClient):
         try:
             tweet_data = {}
             tweet = response.data
+            
+            hashtag = self._get_hashtag_for_text(tweet.text)
+
             users = {u["id"]: u for u in response.includes["users"]}
             if users[tweet.author_id]:
                 user = users[tweet.author_id]
@@ -35,6 +39,8 @@ class TweetStream(StreamingClient):
                     "participant_name": user.name,
                     "participant_username": user.username,
                     "participant_image": user.profile_image_url,
+                    "hashtag": hashtag,
+                    "url": f"https://twitter.com/twitter/statuses/{tweet.id}"
                 }
             log.info(tweet_data)
             tweet_node = Tweet(
@@ -49,6 +55,7 @@ class TweetStream(StreamingClient):
                     name=tweet_data["participant_name"],
                     username=tweet_data["participant_username"].lower(),
                     profile_image=tweet_data["participant_image"],
+                    hashtag=tweet["hashtag"]
             )
 
             results = list(
@@ -131,6 +138,14 @@ class TweetStream(StreamingClient):
         log.info("on_keep_alive")
         pass
 
+    def _get_hashtag_for_text(self, text):
+        rules = self.get_rules().data
+        for rule in rules:
+            hashtags = rule.value.split(" OR ")
+            for hashtag in hashtags:
+                if hashtag in text:
+                    return rule.value
+        return ""
 
 stream = TweetStream(bearer_token=None)
 
@@ -145,30 +160,28 @@ def clear_rules():
         log.info("No rules to delete!")
 
 
-def rules_init(twitter_rule: str):
-    rules = stream.get_rules()
-    if rules.data == None:
+def rules_init(twitter_rules: List[str]):
+    for twitter_rule in twitter_rules:
         log.info("Setting streaming rules.")
         rule = StreamRule(twitter_rule)
         stream.add_rules(rule)
         log.info(rule)
-    else:
-        log.info("Following rules set: ")
-        for rule in rules.data:
-            log.info(rule)
 
 
-def init_stream(bearer_token: str, twitter_rule: str):
-    stream.bearer_token = bearer_token
-    clear_rules()
-    rules_init(twitter_rule)
+def init_stream(bearer_token: str, twitter_rules: List[str]):
+    try:
+        stream.bearer_token = bearer_token
+        clear_rules()
+        rules_init(twitter_rules)
 
-    stream.filter(
-        threaded=True,
-        tweet_fields=["context_annotations", "created_at"],
-        user_fields=["profile_image_url"],
-        expansions=["author_id"],
-    )
+        stream.filter(
+            threaded=True,
+            tweet_fields=["context_annotations", "created_at"],
+            user_fields=["profile_image_url"],
+            expansions=["author_id"],
+        )
+    except Exception as e:
+        print(e)
 
 
 def close_stream():

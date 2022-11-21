@@ -15,6 +15,8 @@ interface MyNode {
     image: string;
     rank: number;
     text?: string;
+    hashtag: string;
+    url: string;
 }
 
 interface MyEdge {
@@ -28,25 +30,37 @@ interface Result {
     relationships: MyEdge[];
 }
 
+interface Props {
+    handleGraphName: any,
+}
 
-
-const MainGraph = () => {
+const MainGraph: React.FC<Props> = ({ handleGraphName }) => {
     const [nodes, setNodes] = useState<MyNode[]>([]);
     const [edges, setEdges] = useState<MyEdge[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const [result, setResult] = useState<Result>();
 
 
-
     useEffect(() => {
         const fetchData = async () => {
             console.log("initial main graph");
             try {
-                const response = await fetch('https://conconnector.memgraph.com/api/graph');
+                //const response = await fetch('https://conconnector.memgraph.com/api/graph/WC2022');
+                const availableGraphsResponse = await fetch('http://localhost:8000/api/available-graphs/');
+                if (!availableGraphsResponse.ok) {
+                    throw Error("Error while fetching available graphs in the beginning!");
+                } else {
+                    const res = await availableGraphsResponse.json();
+                    const availableGraph = res["graphs"][0]
+                    handleGraphName(availableGraph["key"], availableGraph["name"]);
+                }
+
+                const response = await fetch('http://localhost:8000/api/graph/WC2022');
                 if (!response.ok) {
                     throw new Error('Data could not be fetched!');
                 } else {
                     const res = await response.json();
+                    console.log(res);
                     setResult(res);
                 }
             } catch (error) {

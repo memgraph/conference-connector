@@ -9,13 +9,15 @@ import Graph from '../components/graph'
 import JoinGraph from '../components/joinGraph'
 import ClaimForm from '../components/claimForm'
 import LeaderboardContainer from '../components/leaderboardContainer'
+import ChooseGraphContainer from '../components/chooseGraphContainer'
 
 //let socket: Socket<DefaultEventsMap, DefaultEventsMap>;
 
 const Home: NextPage = () => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
-  const [key, setKey] = useState("");
+  const [graphKey, setGraphKey] = useState("");
+  const [graphName, setGraphName] = useState("");
   const [isParticipant, setIsParticipant] = useState(false);
   const [claimedUsername, setClaimedUsername] = useState("");
 
@@ -36,38 +38,34 @@ const Home: NextPage = () => {
     setIsParticipant(false);
   }
 
-  function handleGraphUpdate(updatedNodes: any, updatedEdges: any, updatedUsername: string) {
-    console.log(updatedNodes);
-    console.log(updatedEdges);
+  function handleGraphUpdate(updatedNodes: any, updatedEdges: any, updatedGraphKey: string, updatedGraphName: string) {
     let newNodes: any = [...updatedNodes];
     let newEdges: any = [...updatedEdges];
 
     setNodes(newNodes);
     setEdges(newEdges);
-    setKey(updatedUsername);
+    setGraphKey(updatedGraphKey);
+    setGraphName(updatedGraphName);
     setIsParticipant(true);
+    console.log("updated local: " + updatedGraphName);
+    console.log("variable: " + graphKey);
+  }
+
+  function handleGraphName(graphKey: string, graphName: string) {
+    setGraphKey(graphKey);
+    setGraphName(graphName);
   }
 
   function handleClaim(username: string) {
     setClaimedUsername(username);
   }
 
-  // useEffect(() => {
-  //   console.log(nodes)
-  // }, [nodes]);
-
-  useEffect(() => {
-    // fetch leaderboard and create allData array
-    //setAllData
-    //setFilteredData
-  }, [])
-
   return (
     <div className={styles.page}>
 
       <Head>
-        <title>Conference Connector</title>
-        <meta name="description" content="Connect to Current 2022 conference graph!" />
+        <title>Memgraph's Tweetfluencer</title>
+        <meta name="description" content="Discovering most influential people on Twitter!" />
       </Head>
       <div id="pop-up-background" className={styles.popUpBackground}>
       </div>
@@ -84,32 +82,37 @@ const Home: NextPage = () => {
         <Grid container spacing={2}>
           <Grid item sm={9} xs={12}>
             {isParticipant
-              ? <Graph key={key} nodes={nodes} edges={edges} isUserView={true}></Graph>
-              : <MainGraph></MainGraph>
+              ? <Graph key={graphKey} nodes={nodes} edges={edges} isUserView={true}></Graph>
+              : <MainGraph handleGraphName={handleGraphName}></MainGraph>
             }
           </Grid>
           <Grid item sm={3} xs={12}>
-            <Grid container spacing={3}>
-              <Grid item sm={12} xs={12}>
-                <div style={{ height: "464px" }}>
-                  <JoinGraph></JoinGraph>
-                  <LeaderboardContainer handleGraphUpdate={handleGraphUpdate}></LeaderboardContainer>
-                </div>
-              </Grid>
+            <Grid container spacing={1}>
               <Grid item sm={12} xs={12}>
                 <div className={styles.tweets}>
                   <h2>Tweet</h2>
                   <p className={styles.tweetDescription}>Click on tweet and check its content</p>
+                  <a id="link-to-tweet" target="_blank" className={styles.tweetLink}></a>
                   <div id="current-tweet" className={styles.tweetContent}>
-                    <div id="tweet-text" className={styles.tweetText}></div>
+                  <div id="tweet-text" className={styles.tweetText}></div>
                   </div>
+                </div>
+              </Grid>
+              <Grid item sm={12} xs={12}>
+                <div>
+                  <ChooseGraphContainer handleGraphUpdate={handleGraphUpdate}></ChooseGraphContainer>
+                </div>
+              </Grid>
+              <Grid item sm={12} xs={12}>
+                <div style={{ height: "464px" }}>
+                  <LeaderboardContainer key={graphKey} graphKey={graphKey} handleGraphUpdate={handleGraphUpdate}></LeaderboardContainer>
                 </div>
               </Grid>
             </Grid>
           </Grid>
         </Grid>
       </div>
-      <Footer></Footer>
+      <Footer graphName={graphName}></Footer>
 
     </div >
   )

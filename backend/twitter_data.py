@@ -7,6 +7,7 @@ import schedule
 from datetime import datetime, timezone
 from queue import Queue
 from utils import env
+from typing import List
 from tweepy import Client, Paginator, TweepyException, TooManyRequests
 from gqlalchemy import Match, Call
 from fastapi import BackgroundTasks
@@ -28,49 +29,71 @@ limit_following = None
 running_thread = None
 
 twitter_client = Client(bearer_token=None)
-twitter_rule = None
+twitter_rules = None
+api_routes = None
+routes = None
 
 def init_twitter_env():
-    global twitter_rule
+    global twitter_rules
+    global api_routes
+    global routes
     log.info("Setting u twitter token!")
     twitter_client.bearer_token = env.get_required_env("BEARER_TOKEN")
-    twitter_rule = env.get_required_env("TWITTER_RULE")
+    twitter_rules = env.get_required_env("TWITTER_RULES").split(sep=",")
+    api_routes = env.get_required_env("API_ROUTES").split(sep=",")
+    routes = {x: y for x, y in zip(api_routes, twitter_rules)}
 
 
-def get_tweets_history(twitter_rule: str):
-    log.info("Getting the tweets from the previous 7 days for: " + twitter_rule)
-    try:
-        paginator = Paginator(
-            twitter_client.search_recent_tweets,
-            query=twitter_rule,
-            tweet_fields=["context_annotations", "created_at"],
-            user_fields=["profile_image_url"],
-            expansions=["author_id"],
-            max_results=100,
-            limit=5,
-        )
+def get_routes():
+    if routes is None:
+        return {"graphs": []}
 
-        tweets = {}
-        for page in paginator:
-            users = {u["id"]: u for u in page.includes["users"]}
-            for tweet in page.data:
-                if users[tweet.author_id]:
-                    user = users[tweet.author_id]
-                    tweets[tweet.id] = {
-                        "id": tweet.id,
-                        "text": tweet.text,
-                        "created_at": str(tweet.created_at),
-                        "participant_id": user.id,
-                        "participant_name": user.name,
-                        "participant_username": user.username,
-                        "participant_image": user.profile_image_url,
-                    }
+    response = [{"key": x, "name": y} for x, y in routes.items()]
 
-        return tweets
+    return {
+        "graphs": response
+    }
 
-    except Exception as e:
-        log.error(e, exc_info=True)
-        raise e
+
+def get_tweets_history(twitter_rules: List[str]):
+    tweets = {}
+
+    for rule in twitter_rules:
+        log.info("Getting the tweets from the previous 7 days for: " + rule)
+        try:
+            paginator = Paginator(
+                twitter_client.search_recent_tweets,
+                query=rule,
+                tweet_fields=["context_annotations", "created_at"],
+                user_fields=["profile_image_url"],
+                expansions=["author_id"],
+                max_results=100,
+                limit=1,
+            )
+
+            for page in paginator:
+                users = {u["id"]: u for u in page.includes["users"]}
+                for tweet in page.data:
+                    if users[tweet.author_id]:
+                        user = users[tweet.author_id]
+                        tweets[tweet.id] = {
+                            "id": tweet.id,
+                            "text": tweet.text,
+                            "created_at": str(tweet.created_at),
+                            "participant_id": user.id,
+                            "participant_name": user.name,
+                            "participant_username": user.username,
+                            "participant_image": user.profile_image_url,
+                            "hashtag": rule,
+                            "url": f"https://twitter.com/twitter/statuses/{tweet.id}"
+                        }
+
+        except Exception as e:
+            log.error(e, exc_info=True)
+            raise e
+    
+    return tweets
+
 
 
 def save_history(tweets):
@@ -78,7 +101,7 @@ def save_history(tweets):
     for key, tweet in tweets.items():
             try:
                 tweet_node = Tweet(
-                    id=tweet["id"], text=tweet["text"], created_at=tweet["created_at"]
+                    id=tweet["id"], text=tweet["text"], created_at=tweet["created_at"], hashtag=tweet["hashtag"], url=tweet["url"]
                 )
                 tweet_node = memgraph.save_node(tweet_node)
 
@@ -87,6 +110,7 @@ def save_history(tweets):
                     name=tweet["participant_name"],
                     username=tweet["participant_username"].lower(),
                     profile_image=tweet["participant_image"],
+                    hashtag=tweet["hashtag"],
                 )
                 results = list(
                     Match()
@@ -133,8 +157,9 @@ def add_history_to_backlog():
         }
         participants_backlog.append(participant)
     tweets_results = list(
-        Match().node(labels="Tweet", variable="t").return_().execute()
+        Match().node(labels="Tweet", variable="t").return_().order_by(("t.created_at", Order.DESC)).execute()
     )
+
     for t in tweets_results:
         tweet_node = t["t"]
         tweet = {
@@ -192,15 +217,20 @@ def get_participant_followers(id: int):
     return followers
 
 
-def get_ranked_participants():
+def get_ranked_participants(graph_tag: str):
+    if graph_tag not in api_routes:
+        return {"page_rank": []}
+
     log.info("Getting all participants by rank!")
     try:
         results = list(
             Match()
             .node(labels="Participant", variable="p")
-            .where(item="p.claimed", operator=Operator.EQUAL, expression="True")
+            #.where(item="p.claimed", operator=Operator.EQUAL, literal="True")
+            .where(item="p.hashtag", operator=Operator.EQUAL, literal=routes[graph_tag])
             .return_()
             .order_by(properties=("p.rank", Order.DESC))
+            .limit(10)
             .execute()
         )
         page_rank = list()
@@ -229,6 +259,7 @@ def save_participant(participant):
             name=participant["name"],
             username=participant["username"].lower(),
             profile_image=participant["profile_image"],
+            hashtag=participant["hashtag"]
         )
         memgraph.save_node(participant)
     except: 
@@ -244,6 +275,7 @@ def save_and_claim(participant):
             username=participant["username"].lower(),
             profile_image=participant["profile_image"],
             claimed=True,
+            hashtag=participant["hashtag"]
         )
         memgraph.save_node(participant)
     except: 
@@ -267,7 +299,7 @@ def get_participant_by_username(username: str):
         raise e
 
 
-def get_all_nodes_and_relationships():
+def get_all_nodes_and_relationships(graph_tag: str):
     log.info("Getting hole graph. ")
     try:
         results = list(
@@ -275,6 +307,8 @@ def get_all_nodes_and_relationships():
             .node(variable="n")
             .to(variable="r", directed=False)
             .node(variable="m")
+            .where(item="n.hashtag", operator=Operator.EQUAL, literal=routes[graph_tag])
+            .or_where(item="m.hashtag", operator=Operator.EQUAL, literal=routes[graph_tag])
             .return_()
             .execute()
         )
@@ -300,6 +334,7 @@ def get_all_nodes_and_relationships():
                             n._properties["profile_image"],
                             n._properties["claimed"],
                             n._properties["rank"],
+                            n._properties["hashtag"],
                         )
                     )
                 if n_label == "Tweet":
@@ -310,6 +345,8 @@ def get_all_nodes_and_relationships():
                             n._properties["id"],
                             n._properties["text"],
                             n._properties["created_at"],
+                            n._properties["hashtag"],
+                            n._properties["url"]
                         )
                     )
 
@@ -327,7 +364,7 @@ def get_all_nodes_and_relationships():
                 "claimed": claimed,
                 "rank": rank,
             }
-            for id, label, p_id, name, username, image, claimed, rank in participant_nodes
+            for id, label, p_id, name, username, image, claimed, rank, hashtag in participant_nodes
         ]
 
         tweets = [
@@ -337,8 +374,10 @@ def get_all_nodes_and_relationships():
                 "t_id": t_id,
                 "text": text,
                 "created_at": created_at,
+                "hashtag": hashtag,
+                "url": url,
             }
-            for id, label, t_id, text, created_at in tweet_nodes
+            for id, label, t_id, text, created_at, hashtag, url in tweet_nodes
         ]
 
         rel = [
@@ -440,6 +479,7 @@ def get_participant_nodes_relationships(username: str):
                                 n._properties["profile_image"],
                                 n._properties["claimed"],
                                 n._properties["rank"],
+                                n._properties["hashtag"],
                             )
                         )
                     if n_label == "Tweet":
@@ -450,6 +490,8 @@ def get_participant_nodes_relationships(username: str):
                                 n._properties["id"],
                                 n._properties["text"],
                                 n._properties["created_at"],
+                                n._properties["hashtag"],
+                                n._properties["url"],
                             )
                         )
                 r = result["r"]
@@ -474,6 +516,7 @@ def get_participant_nodes_relationships(username: str):
                             n._properties["profile_image"],
                             n._properties["claimed"],
                             n._properties["rank"],
+                            n._properties["hashtag"],
                         )
             )
 
@@ -487,8 +530,9 @@ def get_participant_nodes_relationships(username: str):
                 "image": image,
                 "claimed": claimed,
                 "rank": rank,
+                "hashtag": hashtag
             }
-            for id, label, p_id, name, username, image, claimed, rank in participant_nodes
+            for id, label, p_id, name, username, image, claimed, rank, hashtag in participant_nodes
         ]
 
         tweets = [
@@ -498,8 +542,10 @@ def get_participant_nodes_relationships(username: str):
                 "t_id": t_id,
                 "text": text,
                 "created_at": created_at,
+                "hashtag": hashtag,
+                "url": url,
             }
-            for id, label, t_id, text, created_at in tweet_nodes
+            for id, label, t_id, text, created_at, hashtag, url in tweet_nodes
         ]
 
         rel = [
@@ -672,12 +718,12 @@ def schedule_graph_updates():
 
 def init_db_from_twitter():
     log.info("Init db from twitter and history.")
-    tweets = get_tweets_history(twitter_rule)
+    tweets = get_tweets_history(twitter_rules)
     save_history(tweets)
     schedule_graph_updates()
     global running_thread
     running_thread = run_continuously()
-    init_stream(bearer_token=twitter_client.bearer_token, twitter_rule=twitter_rule)
+    init_stream(bearer_token=twitter_client.bearer_token, twitter_rules=twitter_rules)
 
 
 def close_connections():

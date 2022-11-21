@@ -13,6 +13,7 @@ interface MyNode {
     image: string;
     rank: number;
     text?: string;
+    url?: string;
 }
 
 interface MyEdge {
@@ -50,7 +51,8 @@ const Graph: React.FC<Props> = ({
                 participants.sort(function (a, b) {
                     return b.rank - a.rank
                 });
-
+                
+                console.log(participants);
                 var minRank = participants[participantsLength - 1].rank;
                 var maxRank = participants[0].rank;
             }
@@ -67,12 +69,6 @@ const Graph: React.FC<Props> = ({
                     node.properties.size = 3;
                     node.properties.fontSize = 0;
                 });
-            // orb.current.data
-            //     .getEdges()
-            //     .filter((edge) => ["TWEETED_BY", "FOLLOWING", "RETWEETED", "LIKES"].includes(edge.getLabel()!))
-            //     .forEach((edge) => {
-            //         edge.properties.fontSize = 0;
-            //     })
 
             orb.current.data
                 .getEdges()
@@ -112,24 +108,28 @@ const Graph: React.FC<Props> = ({
                 .filter((node) => node.getLabel() === "Participant")
                 .forEach((node) => {
                     node.properties.label = node.data.username;
-                    node.properties.color = node.data.claimed ? '#FB6E00' : '#BAB8BB';
-
                     node.properties.size = isUserView ? 7 : Math.sqrt(((node.data.rank - minRank) / (maxRank - minRank)) * 500) + 2;
-
+                    node.properties.imageUrl = node.data.image;
                     node.properties.fontSize = 3;
                 });
 
             orb.current.events.on(OrbEventType.NODE_CLICK, (event) => {
                 if (event?.node.data.label === "Tweet") {
                     let tweetText = document.getElementById("tweet-text")!;
+                    let linkToTweet = document.getElementById("link-to-tweet")!;
                     //fade out
                     tweetText.style.opacity = "0";
+                    linkToTweet.style.opacity = "0";
                     //wait for the transition
                     setTimeout(function () {
                         tweetText.innerHTML = event?.node.data.text!;
+                        linkToTweet.innerHTML = "Go to tweet";
+                        linkToTweet.href = event?.node.data.url!
+                        console.log(event?.node.data);
                         //fade in
                         tweetText.style.opacity = "1";
-                    }, 500);
+                        linkToTweet.style.opacity = "1";
+                    }, 200);
                 }
             });
 
