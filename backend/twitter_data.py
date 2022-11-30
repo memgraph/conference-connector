@@ -33,6 +33,11 @@ twitter_rules = None
 api_routes = None
 routes = None
 
+def has_data_mg() -> bool:
+    result = next(memgraph.execute_and_fetch("MATCH (n) RETURN COUNT(n) AS cnt"))['cnt']
+
+    return result > 0
+
 def init_twitter_env():
     global twitter_rules
     global api_routes
@@ -68,7 +73,7 @@ def get_tweets_history(twitter_rules: List[str]):
                 user_fields=["profile_image_url"],
                 expansions=["author_id"],
                 max_results=100,
-                limit=1,
+                limit=5,
             )
 
             for page in paginator:

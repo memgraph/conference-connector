@@ -24,6 +24,7 @@ from twitter_data import (
     init_twitter_env,
     get_all_nodes_and_relationships,
     get_participant_by_username,
+    has_data_mg,
     whitelist_participant,
     is_participant_in_db,
     log_participant,
@@ -102,12 +103,15 @@ def set_up_memgraph_trigger():
 @app.on_event("startup")
 def startup_event():
     global api_routes
+
     init_twitter_env()
-    # init_signups_log()
     connect_to_memgraph()
-    set_up_memgraph()
-    set_up_memgraph_trigger()
-    init_db_from_twitter()
+
+    if not has_data_mg():
+        # init_signups_log()
+        set_up_memgraph()
+        set_up_memgraph_trigger()
+        init_db_from_twitter()
 
 
 @app.get("/api")
