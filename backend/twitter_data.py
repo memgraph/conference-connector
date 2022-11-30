@@ -745,7 +745,7 @@ def schedule_graph_updates():
     schedule.every(15).minutes.do(update_request_limit_data)
     schedule.every(3).minutes.do(update_graph_tweets)
     schedule.every(3).minutes.do(update_graph_participants)
-    schedule.every(30).seconds.do(update_graph_events)
+    schedule.every(1).hour.do(update_graph_events)
 
 
 def update_graph_events():
