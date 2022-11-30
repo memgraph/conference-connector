@@ -25,7 +25,7 @@ const LeaderboardContainerMobile = () => {
 
     const fetchLeaderboard = async () => {
         console.log("fetching leaderboard mobile");
-        const response = await fetch('https://conconnector.memgraph.com/api/ranked/WC2022');
+        const response = await fetch('https://tweetfluencer.memgraph.com/api/ranked/WC2022');
         // const response = await fetch('http://localhost:8000/api/ranked/WC2022');
         if (!response.ok) {
             console.log("error happened")

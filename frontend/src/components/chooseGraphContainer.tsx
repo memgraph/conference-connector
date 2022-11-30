@@ -21,7 +21,7 @@ const ChooseGraphContainer: React.FC<Props> = ({ handleGraphUpdate }) => {
     useEffect(() => {
         const fetchAvailableGraphs = async () => {
             try {
-                const response = await fetch('https://conconnector.memgraph.com/api/available-graphs/');
+                const response = await fetch('https://tweetfluencer.memgraph.com/api/available-graphs/');
                 // const response = await fetch('http://localhost:8000/api/available-graphs/');
                 if (!response.ok) {
                     console.log("error happened")

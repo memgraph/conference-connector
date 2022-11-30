@@ -42,7 +42,7 @@ const LeaderboardContainer: React.FC<Props> = ({ graphKey, handleGraphUpdate }) 
             console.log("fetching leaderboard " + rankKey);
             try {
                 if (rankKey === undefined) {return;}
-                const response = await fetch('https://conconnector.memgraph.com/api/ranked/' + rankKey);
+                const response = await fetch('https://tweetfluencer.memgraph.com/api/ranked/' + rankKey);
                 // const response = await fetch('http://localhost:8000/api/ranked/' + rankKey);
                 if (!response.ok) {
                     console.log("error happened")
