@@ -6,7 +6,7 @@ import logging.config
 
 from datetime import datetime, timezone
 
-from typing import List
+from typing import List, Optional
 
 from gqlalchemy import Match
 from gqlalchemy.query_builders.memgraph_query_builder import Operator, Order
@@ -44,14 +44,21 @@ def init_twitter_env():
     from dotenv import load_dotenv
 
     load_dotenv()
+    log.info("Loaded dotenv")
 
     global twitter_rules
     global api_routes
     global routes
-    log.info("Setting u twitter token!")
+
+    log.info("Setting up twitter token!")
+    
     twitter_client.bearer_token = env.get_required_env("BEARER_TOKEN")
     twitter_rules = env.get_required_env("TWITTER_RULES").split(sep=",")
     api_routes = env.get_required_env("API_ROUTES").split(sep=",")
+    
+    log.info(f"Bearer token: {twitter_client.bearer_token}")
+    log.info(f"Twitter rules: {twitter_rules}")
+    log.info(f"Api routes: {api_routes}")
     routes = {x: y for x, y in zip(api_routes, twitter_rules)}
 
 
@@ -781,10 +788,11 @@ def refresh_streams():
     )
 
 
-def init_db_from_twitter(rules):
+def init_db_from_twitter(rules: Optional[List[str]] = None):
     log.info("Init db from twitter and history.")
-
-    tweets = get_tweets_history(rules)
+    global twitter_rules
+    
+    tweets = get_tweets_history(rules) if rules is not None else get_tweets_history(twitter_rules)
     save_history(tweets)
 
 

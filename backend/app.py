@@ -101,15 +101,10 @@ def startup_event():
     init_twitter_env()
     connect_to_memgraph()
 
-    if twitter_rules is None or len(twitter_rules) == 0:
-        log.warning(f"Twitter rules is {twitter_rules}")
-        log.warning("Exiting, environment not read successfully!")
-        exit(1)
-
     if not has_data_mg():
         set_up_memgraph()
         set_up_memgraph_trigger()
-        init_db_from_twitter(twitter_rules)
+        init_db_from_twitter()
 
     schedule_graph_updates()
     refresh_streams()
