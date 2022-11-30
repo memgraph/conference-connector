@@ -155,7 +155,7 @@ const Graph: React.FC<Props> = ({
 
 
     return (
-        <div style={{ height: "80vh" }}>
+        <div style={{ height: "100vh" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
                 <div id="graph" style={{ flex: "1", width: "100%", zIndex: "1" }}>Hi graph!</div>
             </div>
