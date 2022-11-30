@@ -1,27 +1,21 @@
-import os
+import json
 import logging.config
 import time
-import json
 
 from os.path import exists
 
-from typing import Union
 from fastapi import (
     FastAPI,
     Request,
-    Response,
     HTTPException,
-    WebSocket,
-    BackgroundTasks,
 )
-from fastapi.testclient import TestClient
 from starlette.middleware.cors import CORSMiddleware
-from gqlalchemy import Match, Call
 
 from models import memgraph
 from twitter_data import (
     init_db_from_twitter,
     init_twitter_env,
+    refresh_streams,
     get_all_nodes_and_relationships,
     get_participant_by_username,
     has_data_mg,
@@ -29,10 +23,12 @@ from twitter_data import (
     is_participant_in_db,
     log_participant,
     save_and_claim,
+    schedule_graph_updates,
     get_participant_nodes_relationships,
     close_connections,
     get_ranked_participants,
     get_routes,
+    twitter_rules
 )
 
 
@@ -102,16 +98,16 @@ def set_up_memgraph_trigger():
 
 @app.on_event("startup")
 def startup_event():
-    global api_routes
-
     init_twitter_env()
     connect_to_memgraph()
 
     if not has_data_mg():
-        # init_signups_log()
         set_up_memgraph()
         set_up_memgraph_trigger()
-        init_db_from_twitter()
+        init_db_from_twitter(twitter_rules)
+
+    schedule_graph_updates()
+    refresh_streams()
 
 
 @app.get("/api")

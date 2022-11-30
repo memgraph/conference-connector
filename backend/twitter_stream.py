@@ -1,10 +1,13 @@
-from tweepy import StreamingClient, StreamRule
-from gqlalchemy import Create, Match
-from models import memgraph, Participant, Tweet, TweetedBy
 from collections import deque
-from typing import List
+from time import sleep
+
 import logging
-import traceback
+
+from gqlalchemy import Create, Match
+from typing import List
+from tweepy import StreamingClient, StreamRule
+
+from models import memgraph, Participant, Tweet, TweetedBy
 
 logging.config.fileConfig('./logging.ini', disable_existing_loggers=False)
 log = logging.getLogger(__name__)
@@ -166,9 +169,10 @@ def rules_init(twitter_rules: List[str]):
         rule = StreamRule(twitter_rule)
         stream.add_rules(rule)
         log.info(rule)
+        sleep(2)
 
 
-def init_stream(bearer_token: str, twitter_rules: List[str]):
+def refresh_stream(bearer_token: str, twitter_rules: List[str]):
     try:
         stream.bearer_token = bearer_token
         clear_rules()
