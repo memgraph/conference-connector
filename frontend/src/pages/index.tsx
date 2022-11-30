@@ -3,15 +3,13 @@ import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 import Footer from '../components/footer'
 import { Grid } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import MainGraph from '../components/mainGraph'
 import Graph from '../components/graph'
-import JoinGraph from '../components/joinGraph'
 import ClaimForm from '../components/claimForm'
 import LeaderboardContainer from '../components/leaderboardContainer'
 import ChooseGraphContainer from '../components/chooseGraphContainer'
-
-//let socket: Socket<DefaultEventsMap, DefaultEventsMap>;
+import dynamic from 'next/dynamic';
 
 const Home: NextPage = () => {
   const [nodes, setNodes] = useState([]);
@@ -60,6 +58,26 @@ const Home: NextPage = () => {
     setClaimedUsername(username);
   }
 
+  function GraphDynamic(props: any) {
+    const GraphDyn = dynamic(
+      () => import('../components/graph'),
+      {
+        ssr: false
+      }
+    )
+    return <GraphDyn nodes={props.nodes} edges={props.edges} isUserView={props.isUserView}></GraphDyn>
+  }
+
+  function MainGraphDynamic(props: any) {
+    const MainGraphDyn = dynamic(
+      () => import('../components/mainGraph'),
+      {
+        ssr: false
+      }
+    )
+    return <MainGraphDyn handleGraphName={props.handleGraphName}></MainGraphDyn>
+  }
+
   return (
     <div className={styles.page}>
 
@@ -82,8 +100,8 @@ const Home: NextPage = () => {
         <Grid container spacing={2}>
           <Grid item sm={9} xs={12}>
             {isParticipant
-              ? <Graph key={graphKey} nodes={nodes} edges={edges} isUserView={true}></Graph>
-              : <MainGraph handleGraphName={handleGraphName}></MainGraph>
+              ? <GraphDynamic key={graphKey} nodes={nodes} edges={edges} isUserView={true} />
+              : <MainGraphDynamic key={graphKey} handleGraphName={handleGraphName} />
             }
           </Grid>
           <Grid item sm={3} xs={12}>
@@ -94,7 +112,7 @@ const Home: NextPage = () => {
                   <p className={styles.tweetDescription}>Click on tweet and check its content</p>
                   <a id="link-to-tweet" target="_blank" className={styles.tweetLink}></a>
                   <div id="current-tweet" className={styles.tweetContent}>
-                  <div id="tweet-text" className={styles.tweetText}></div>
+                    <div id="tweet-text" className={styles.tweetText}></div>
                   </div>
                 </div>
               </Grid>

@@ -60,7 +60,6 @@ const MainGraph: React.FC<Props> = ({ handleGraphName }) => {
                     throw new Error('Data could not be fetched!');
                 } else {
                     const res = await response.json();
-                    console.log(res);
                     setResult(res);
                 }
             } catch (error) {

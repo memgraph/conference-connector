@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { DefaultView, IEdgeBase, INodeBase, OrbEventType } from '../../public/libs/orb';
-import { IOrbViewContext, Orb } from '../../public/libs/orb/orb';
+import { useEffect, useRef } from 'react';
+
+import { OrbEventType } from '../../public/libs/orb';
+import { Orb } from '../../public/libs/orb/orb';
 
 interface MyNode {
     id: string;
@@ -33,13 +34,16 @@ const Graph: React.FC<Props> = ({
     edges,
     isUserView,
 }) => {
-
     const container = useRef<HTMLElement>();
     const orb = useRef<Orb<MyNode, MyEdge>>();
 
     useEffect(() => {
-        container.current = document.getElementById("graph")!;
+        let graph = document.getElementById("graph")!;
+        graph.innerHTML = "";
+
+        container.current = graph;
         orb.current = new Orb<MyNode, MyEdge>(container.current);
+        return;
     }, []);
 
     useEffect(() => {
@@ -51,8 +55,7 @@ const Graph: React.FC<Props> = ({
                 participants.sort(function (a, b) {
                     return b.rank - a.rank
                 });
-                
-                console.log(participants);
+
                 var minRank = participants[participantsLength - 1].rank;
                 var maxRank = participants[0].rank;
             }
@@ -65,58 +68,58 @@ const Graph: React.FC<Props> = ({
                 .getNodes()
                 .filter((node) => node.getLabel() === "Tweet")
                 .forEach((node) => {
-                    node.properties.color = '#8C0082';
-                    node.properties.size = 3;
-                    node.properties.fontSize = 0;
+                    node.style.imageUrl = "https://cdn-icons-png.flaticon.com/512/3670/3670151.png"
+                    node.style.size = 10;
+                    node.style.fontSize = 0;
                 });
 
             orb.current.data
                 .getEdges()
                 .filter((edge) => edge.getLabel() === "TWEETED_BY")
                 .forEach((edge) => {
-                    edge.properties.color = "#FB6E00A6";
-                    edge.properties.colorHover = "#FB6E00";
-                    edge.properties.fontSize = 0;
+                    edge.style.color = "#FB6E00A6";
+                    edge.style.colorHover = "#FB6E00";
+                    edge.style.fontSize = 0;
                 })
             orb.current.data
                 .getEdges()
                 .filter((edge) => edge.getLabel() === "FOLLOWING")
                 .forEach((edge) => {
-                    edge.properties.color = "#857F87A6";
-                    edge.properties.colorHover = "#857F87";
-                    edge.properties.fontSize = 0;
+                    edge.style.color = "#857F87A6";
+                    edge.style.colorHover = "#857F87";
+                    edge.style.fontSize = 0;
                 })
 
             orb.current.data
                 .getEdges()
                 .filter((edge) => edge.getLabel() === "RETWEETED")
                 .forEach((edge) => {
-                    edge.properties.color = "#DD2222A6";
-                    edge.properties.colorHover = "#DD2222";
-                    edge.properties.fontSize = 0;
+                    edge.style.color = "#DD2222A6";
+                    edge.style.colorHover = "#DD2222";
+                    edge.style.fontSize = 0;
                 })
             orb.current.data
                 .getEdges()
                 .filter((edge) => edge.getLabel() === "LIKES")
                 .forEach((edge) => {
-                    edge.properties.color = "#FFC500A6";
-                    edge.properties.colorHover = "#FFC500";
-                    edge.properties.fontSize = 0;
+                    edge.style.color = "#FFC500A6";
+                    edge.style.colorHover = "#FFC500";
+                    edge.style.fontSize = 0;
                 })
             orb.current.data
                 .getNodes()
                 .filter((node) => node.getLabel() === "Participant")
                 .forEach((node) => {
-                    node.properties.label = node.data.username;
-                    node.properties.size = isUserView ? 7 : Math.sqrt(((node.data.rank - minRank) / (maxRank - minRank)) * 500) + 2;
-                    node.properties.imageUrl = node.data.image;
-                    node.properties.fontSize = 3;
+                    node.style.label = node.data.username;
+                    node.style.size = isUserView ? 10 : Math.sqrt(((node.data.rank - minRank) / (maxRank - minRank)) * 500) + 10;
+                    node.style.imageUrl = node.data.image;
+                    node.style.fontSize = 3;
                 });
 
             orb.current.events.on(OrbEventType.NODE_CLICK, (event) => {
                 if (event?.node.data.label === "Tweet") {
                     let tweetText = document.getElementById("tweet-text")!;
-                    let linkToTweet = document.getElementById("link-to-tweet")!;
+                    let linkToTweet = document.getElementById("link-to-tweet")! as HTMLAnchorElement;
                     //fade out
                     tweetText.style.opacity = "0";
                     linkToTweet.style.opacity = "0";
@@ -125,7 +128,6 @@ const Graph: React.FC<Props> = ({
                         tweetText.innerHTML = event?.node.data.text!;
                         linkToTweet.innerHTML = "Go to tweet";
                         linkToTweet.href = event?.node.data.url!
-                        console.log(event?.node.data);
                         //fade in
                         tweetText.style.opacity = "1";
                         linkToTweet.style.opacity = "1";
@@ -153,8 +155,6 @@ const Graph: React.FC<Props> = ({
 
 
     return (
-        // <div style={{ height: "730px" }}>
-
         <div style={{ height: "80vh" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
                 <div id="graph" style={{ flex: "1", width: "100%", zIndex: "1" }}>Hi graph!</div>

@@ -16,7 +16,7 @@ function Footer({graphName}) {
                 </Grid>
                 <Grid item xs={12} sm={4}>
                     <div className={styles.description}>
-                        Check out who are the most influential persons on {graphName} graph by Memgraph's PageRank!
+                        Check out who are the most influential persons on <b>{graphName}</b> graph by Memgraph's PageRank!
                     </div>
                 </Grid>
                 <Grid item xs={12} sm={4}>
