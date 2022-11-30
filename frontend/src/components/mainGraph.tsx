@@ -55,7 +55,7 @@ const MainGraph: React.FC<Props> = ({ handleGraphName }) => {
                     handleGraphName(availableGraph["key"], availableGraph["name"]);
                 }
 
-                const response = await fetch('http://tweetfluencer.memgraph.com/api/graph/WC2022');
+                const response = await fetch('https://tweetfluencer.memgraph.com/api/graph/WC2022');
                 // const response = await fetch('http://localhost:8000/api/graph/WC2022');
                 if (!response.ok) {
                     throw new Error('Data could not be fetched!');
