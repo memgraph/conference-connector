@@ -792,7 +792,10 @@ def init_db_from_twitter(rules: Optional[List[str]] = None):
     log.info("Init db from twitter and history.")
     global twitter_rules
     
-    tweets = get_tweets_history(rules) if rules is not None else get_tweets_history(twitter_rules)
+    rules_that_apply = rules if rules is not None else twitter_rules
+    log.info(f"Rules for fetching graphs: {rules_that_apply}")
+    
+    tweets = get_tweets_history(rules_that_apply)
     save_history(tweets)
 
 
