@@ -4,8 +4,6 @@ import styles from '../styles/Home.module.css'
 import Footer from '../components/footer'
 import { Grid } from '@mui/material'
 import { useState } from 'react'
-import MainGraph from '../components/mainGraph'
-import Graph from '../components/graph'
 import ClaimForm from '../components/claimForm'
 import LeaderboardContainer from '../components/leaderboardContainer'
 import ChooseGraphContainer from '../components/chooseGraphContainer'
@@ -82,7 +80,7 @@ const Home: NextPage = () => {
     <div className={styles.page}>
 
       <Head>
-        <title>Memgraph's Tweetfluencer</title>
+        <title>Memgraph&apos;s Tweetfluencer</title>
         <meta name="description" content="Discovering most influential people on Twitter!" />
       </Head>
       <div id="pop-up-background" className={styles.popUpBackground}>
