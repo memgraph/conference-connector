@@ -13,8 +13,8 @@ interface Props {
 const ChooseGraphCard: React.FC<Props> = ({ position, routeKey, name, handleGraphUpdate }) => {
 
     const fetchGraph = async (graphTag: string) => {
-        // const response = await fetch('https://conconnector.memgraph.com/api/user/' + username)
-        const response = await fetch('http://localhost:8000/api/graph/' + graphTag)
+        const response = await fetch('https://conconnector.memgraph.com/api/graph/' + graphTag);
+        // const response = await fetch('http://localhost:8000/api/graph/' + graphTag);
         if (!response.ok) {
             console.log("error happened")
             throw new Error('Data could not be fetched!')

@@ -45,8 +45,8 @@ const MainGraph: React.FC<Props> = ({ handleGraphName }) => {
         const fetchData = async () => {
             console.log("initial main graph");
             try {
-                //const response = await fetch('https://conconnector.memgraph.com/api/graph/WC2022');
-                const availableGraphsResponse = await fetch('http://localhost:8000/api/available-graphs/');
+                const availableGraphsResponse = await fetch('https://conconnector.memgraph.com/api/available-graphs/');
+                // const availableGraphsResponse = await fetch('http://localhost:8000/api/available-graphs/');
                 if (!availableGraphsResponse.ok) {
                     throw Error("Error while fetching available graphs in the beginning!");
                 } else {
@@ -55,7 +55,8 @@ const MainGraph: React.FC<Props> = ({ handleGraphName }) => {
                     handleGraphName(availableGraph["key"], availableGraph["name"]);
                 }
 
-                const response = await fetch('http://localhost:8000/api/graph/WC2022');
+                const response = await fetch('http://conconnector.memgraph.com/api/graph/WC2022');
+                // const response = await fetch('http://localhost:8000/api/graph/WC2022');
                 if (!response.ok) {
                     throw new Error('Data could not be fetched!');
                 } else {
