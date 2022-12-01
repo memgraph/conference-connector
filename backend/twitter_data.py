@@ -71,7 +71,7 @@ def get_routes():
     return {"graphs": response}
 
 
-def get_tweets_history(rules: List[str]):
+def get_tweets_history(rules: List[str], max_results: int =100):
     tweets = {}
 
     for rule in rules:
@@ -83,7 +83,7 @@ def get_tweets_history(rules: List[str]):
                 tweet_fields=["context_annotations", "created_at"],
                 user_fields=["profile_image_url"],
                 expansions=["author_id"],
-                max_results=100,
+                max_results=max_results,
                 limit=5,
             )
 
@@ -610,6 +610,21 @@ def run_continuously(interval=1):
     return cease_continuous_run
 
 
+def schedule_graph_updates():
+    log.info("Scheduling graph updates tasks.")
+
+    global limit_likes_retweets
+    global limit_following
+    limit_likes_retweets = 35
+    limit_following = 7
+
+    schedule.every(15).minutes.do(update_request_limit_data)
+    schedule.every(3).minutes.do(update_graph_tweets)
+    schedule.every(3).minutes.do(update_graph_participants)
+    schedule.every(5).minutes.do(fetch_more_tweets)
+    schedule.every(1).hour.do(update_graph_events)
+
+
 def update_request_limit_data():
     log.info("Updating request limit data!")
     global limit_likes_retweets
@@ -741,22 +756,22 @@ def update_graph_participants():
             log.error(e, exc_info=True)
 
 
-def schedule_graph_updates():
-    log.info("Scheduling graph updates tasks.")
-
-    global limit_likes_retweets
-    global limit_following
-    limit_likes_retweets = 35
-    limit_following = 7
-
-    schedule.every(15).minutes.do(update_request_limit_data)
-    schedule.every(3).minutes.do(update_graph_tweets)
-    schedule.every(3).minutes.do(update_graph_participants)
-    schedule.every(1).hour.do(update_graph_events)
-
+def fetch_more_tweets():
+    log.info("Fetching more tweets.")
+    global twitter_rules
+    
+    tweets = get_tweets_history(twitter_rules, 50)
+    save_history(tweets)
 
 def update_graph_events():
     init_twitter_env()
+
+    memgraph.execute("""
+        MATCH (n)-[r]->(m) WHERE degree(n) = 1 and degree(m) = 1 
+        DETACH DELETE n
+        DELETE m;
+        """
+    )
 
     hashtag_result = list(
         memgraph.execute_and_fetch(
